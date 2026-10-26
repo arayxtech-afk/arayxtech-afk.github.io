@@ -1123,8 +1123,38 @@ function toYmd(v){if(!v)return '';if(typeof v==='number'){const d=new Date(v<1e1
 function mapDurum(v){const n=norm(v);if(!n)return 'bekliyor';if(/iptal|cancel/.test(n))return 'iptal';if(/teslim|deliver/.test(n))return 'teslim';if(/tamam|complet|done|finish|ready|bitti/.test(n))return 'tamamlandi';if(/uret|prod|progress|print|basil/.test(n))return 'uretimde';if(/teklif|quote|offer/.test(n))return 'teklif';return 'bekliyor';}
 function mapYuk(v){const n=norm(typeof v==='object'&&v?(pick(v,['status','durum','state'])||''):v);if(!n)return null;if(/uygundegil|notsuit|unsuit|notapplicable|^na$|skip|hayir|false/.test(n))return 'uygunDegil';if(/yuklenecek|todo|pending|tobeupl|ready/.test(n))return 'yuklenecek';if(/yuklendi|uploaded|done|published|true|yayin/.test(n))return 'yuklendi';return 'degerlendir';}
 function collectArrays(obj,key,depth,out){if(depth>5||obj==null)return out;if(Array.isArray(obj)){if(obj.length&&typeof obj[0]==='object')out.push({key:norm(key),arr:obj});return out;}if(typeof obj==='object'){if(typeof obj.data==='string'){try{collectArrays(JSON.parse(obj.data),key,depth+1,out);}catch(e){}}Object.keys(obj).forEach(k=>{let v=obj[k];if(typeof v==='string'&&/^[\[{]/.test(v.trim())){try{v=JSON.parse(v);}catch(e){}}collectArrays(v,k,depth+1,out);});}return out;}
+function mapListing(v){const n=norm(v);if(!n)return null;if(/unsuit|notsuit|uygundegil|na$/.test(n))return 'uygunDegil';if(/upload|done|publish|yuklendi|live/.test(n)&&!/pending|toupload/.test(n))return 'yuklendi';if(/pending|todo|toupload|yuklenecek/.test(n))return 'yuklenecek';return 'degerlendir';}
+function parseArayx3d(data){
+  // ChatGPT'deki eski "Arayx 3D · Mobil İş Takibi" yedeği (tutarlar kuruş, filament miligram)
+  const c=v=>v==null||v===''?0:Math.round(num(v))/100;
+  const pays=Array.isArray(data.payments)?data.payments:[];
+  const res={orders:[],entries:[],spools:[],settings:null,kaynak:'Eski uygulamanın yedeği',paidAssumed:[],legacyIds:[]};
+  (data.orders||[]).forEach(x=>{
+    const names=Array.isArray(x.parts)&&x.parts.length?x.parts:(x.part?[x.part]:['Parça']);
+    const durum=mapDurum(x.status);
+    const parcalar=names.map((n,i)=>{const p=newPart();p.id=`imp-o${x.id}-p${i+1}`;p.ad=String(n&&typeof n==='object'?(n.name||n.ad||''):n).trim()||'Parça';
+      const L=(x.listing||[]).find(l=>Number(l.id)===i+1)||(x.listing||[])[i];
+      if(L)['cults','trendyol','hepsiburada','makerworld'].forEach(k=>{const s=mapListing(L[k]);if(s)p.yukleme[k]=s;});
+      if(durum==='tamamlandi'||durum==='teslim')p.bitti=true;return p;});
+    if(x.filament_mg!=null&&num(x.filament_mg))parcalar[0].gram=Math.round(num(x.filament_mg)/100)/10;
+    const tarih=toYmd(x.order_date)||todayStr();
+    const o={id:'imp-o-'+x.id,musteri:String(x.customer||'İsimsiz').trim(),telefon:String(x.phone||''),sehir:'',kanal:'',parcalar,fiyat:c(x.price_cents),tarih,termin:toYmd(x.due_date||x.deadline),durum,acil:false,iscilik:0,kargo:0,takip:'',not:String(x.note||x.notes||''),fotolar:[],olusturma:new Date().toISOString(),stokDusuldu:true,
+      odemeler:pays.filter(p=>String(p.order_id)===String(x.id)).map(p=>({id:'imp-pay-'+p.id,tarih:toYmd(p.paid_on)||tarih,tutar:c(p.amount_cents),yontem:'Aktarım'}))};
+    if(['uretimde','tamamlandi','teslim'].includes(durum))o.uretimTarihi=tarih;
+    if(durum==='tamamlandi'||durum==='teslim')o.tamamlanmaTarihi=toYmd(x.completed_on)||toYmd(x.delivered_on)||tarih;
+    if(durum==='teslim'){o.teslimTarihi=toYmd(x.delivered_on)||o.tamamlanmaTarihi;
+      if(!o.odemeler.length&&o.fiyat){o.odemeler.push({id:'imp-pay-o'+x.id,tarih:o.teslimTarihi,tutar:o.fiyat,yontem:'Aktarım'});res.paidAssumed.push(o.musteri);}}
+    res.legacyIds.push('imp-'+norm(x.id));
+    res.orders.push(o);
+  });
+  const kanalOf=t=>/trendyol/i.test(t)?'Trendyol':/hepsi/i.test(t)?'Hepsiburada':/stl|cults/i.test(t)?'Cults3D':/instagram/i.test(t)?'Instagram':'';
+  (data.incomes||[]).forEach(x=>{const t=String(x.title||x.description||'');res.entries.push({id:'imp-g-'+x.id,tip:'gelir',aciklama:t,kanal:kanalOf(t),tutar:c(x.amount_cents),tarih:toYmd(x.received_on||x.date)||todayStr()});});
+  (data.expenses||[]).forEach(x=>{const k=String(x.category||'');res.entries.push({id:'imp-c-'+x.id,tip:'gider',kategori:GIDER_KAT.find(g=>norm(g)===norm(k))||'Diğer',aciklama:String(x.title||x.description||''),tutar:c(x.amount_cents),tarih:toYmd(x.spent_on||x.date)||todayStr()});});
+  return res;
+}
 function parseImport(data){
   if(data&&data.app==='arayx-is-takibi')return {orders:data.siparisler||[],entries:data.kayitlar||[],spools:data.makaralar||[],settings:data.ayarlar||null,kaynak:'Bu uygulamanın yedeği'};
+  if(data&&Array.isArray(data.orders)&&(data.app==='arayx-3d'||(data.orders[0]&&('price_cents' in data.orders[0]||'customer' in data.orders[0]))))return parseArayx3d(data);
   const arrs=collectArrays(data,'',0,[]);const res={orders:[],entries:[],spools:[],settings:null,kaynak:'Eski uygulamanın yedeği'};
   const looksOrder=x=>pick(x,['customername','customer','musteri','musteriadi','musteriad','client','clientname','adsoyad'])!=null||pick(x,['parts','parcalar','items'])!=null;
   for(const {key,arr} of arrs){
@@ -1159,14 +1189,17 @@ function importOrder(x){
 }
 function importEntry(x,tip){
   const tutar=num(pick(x,['amount','tutar','price','value','total','fiyat']));if(!tutar)return null;
-  const e={id:'imp-'+(norm(pick(x,['id','uuid'])||'')||uid()),tip,aciklama:String(pick(x,['description','aciklama','title','name','note','label'])||''),tutar,tarih:toYmd(pick(x,['date','tarih','createdat']))||todayStr()};
+  const e={id:'imp-'+(tip==='gider'?'c':'g')+'-'+(norm(pick(x,['id','uuid'])||'')||uid()),tip,aciklama:String(pick(x,['description','aciklama','title','name','note','label'])||''),tutar,tarih:toYmd(pick(x,['date','tarih','createdat']))||todayStr()};
   if(tip==='gider'){const c=norm(pick(x,['category','kategori','type'])||'');e.kategori=GIDER_KAT.find(k=>norm(k)===c)||(/filament/.test(c)?'Filament':/elektrik|electric/.test(c)?'Elektrik':/kargo|ship/.test(c)?'Kargo':/ambalaj|pack/.test(c)?'Ambalaj':/bakim|yedek|repair|maint/.test(c)?'Bakım ve yedek parça':/reklam|ads?$|advert/.test(c)?'Reklam':'Diğer');}
   return e;
 }
 function applyImport(r){
   const items=[];
+  // önceki hatalı aktarımın kayıtlarını (tutarı 0 görünen) bunlarla değiştir
+  const legacy=new Set(r.legacyIds||[]);const old=S.orders.filter(o=>legacy.has(o.id));
   const ords=r.orders.slice().sort((a,b)=>String(a.tarih).localeCompare(String(b.tarih)));
-  ords.forEach(o=>{if(!o.ax){o.ax=nextAx();}items.push(['orders',o]);});
+  ords.forEach(o=>{const same=S.orders.find(e=>e.id===o.id)||old.find(e=>norm(e.musteri)===norm(o.musteri));if(same){o.ax=o.ax||same.ax;if(same.fotolar&&same.fotolar.length)o.fotolar=same.fotolar;}if(!o.ax){o.ax=nextAx();}items.push(['orders',o]);});
+  if(old.length)delMany(old.map(o=>['orders',o.id]));
   r.entries.forEach(e=>items.push(['entries',e]));r.spools.forEach(s=>items.push(['spools',s]));
   if(r.settings){S.settings=mergeSet(Object.assign({},r.settings,{axSayac:Math.max(num(r.settings.axSayac),num(S.settings.axSayac))}));putSettings(true);}
   putMany(items).then(()=>toast(`${r.orders.length} sipariş, ${r.entries.length} gelir/gider aktarıldı`));
@@ -1304,7 +1337,8 @@ function importPreview(r,title,fname){
       openSheet(`<div class="sh-head"><h2 class="sh-title">${esc(title)}</h2></div><p class="sub" style="margin:0 0 12px">${esc(r.kaynak)}${fname?' · '+esc(fname):''}</p>
        <div class="card"><div class="kv"><div><span>Sipariş</span><b>${r.orders.length}</b></div>${Object.keys(st).map(k=>`<div><span style="padding-left:12px">${DURUM[k]}</span><b>${st[k]}</b></div>`).join('')}<div><span>Gelir kaydı</span><b>${r.entries.filter(e=>e.tip==='gelir').length}</b></div><div><span>Gider kaydı</span><b>${r.entries.filter(e=>e.tip==='gider').length}</b></div>${r.spools.length?`<div><span>Makara</span><b>${r.spools.length}</b></div>`:''}</div></div>
        ${dup?`<p class="hint" style="margin-top:10px">${dup} sipariş zaten var; onlar yedekteki haliyle güncellenir.</p>`:''}
-       ${r.kaynak.startsWith('Eski')?'<p class="hint" style="margin-top:10px">Teslim edilmiş eski siparişler "ödendi" sayılır. Aktarımdan sonra birkaç siparişi açıp kontrol et.</p>':''}
+       ${r.paidAssumed&&r.paidAssumed.length?`<p class="hint" style="margin-top:10px">Teslim edilmiş ama ödeme kaydı olmayan ${r.paidAssumed.length} sipariş ödendi sayıldı (${esc(r.paidAssumed.join(', '))}). Ödenmediyse siparişi açıp ödeme satırını sil; alacak olarak görünür.</p>`:''}
+       ${(r.legacyIds||[]).some(id=>S.orders.some(o=>o.id===id))?'<p class="hint" style="margin-top:10px">Daha önce tutarı 0 olarak aktarılan kayıtlar bunlarla değiştirilecek.</p>':''}
        <div class="sh-foot" style="margin-top:14px"><button class="btn" data-act="closeSheet" data-l="2">Vazgeç</button><button class="btn pri" data-act="importApply">Aktar</button></div>`,{type:'imp'},2);
 }
 async function detectOld(){
