@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ARAYX Kâr">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="icon" href="data:image/png;base64,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">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<script>window.BASLANGIC_URUNLER=[{"sku": "MT-CLT-EFD", "ad": "ARAYX3D Mitsubishi Colt Uyumlu El Freni Düğmesi Park Freni Butonu Siyah", "barkod": "ARAYX26100001", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "OP-AH-KLC-MND", "ad": "ARAYX3D Opel Astra H Uyumlu Orta Konsol Kolçak Mandalı Kolçak Kapağı Kilit Dili Siyah", "barkod": "ARAYX26100002", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "HC-FB7-EFD-SYH", "ad": "ARAYX3D Honda Civic FB7 2012-2016 Uyumlu El Freni Düğmesi Park Freni Butonu Siyah", "barkod": "ARAYX26100003", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "PG-3008-SLK-4LU", "ad": "ARAYX3D Peugeot 3008 5008 Citroen C5 Aircross DS7 Uyumlu Ön Silecek Kolu Hortum Klipsi 4 Adet Siyah", "barkod": "ARAYX26100004", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "HY-I20-PND-2LI", "ad": "ARAYX3D Hyundai i20 Uyumlu Bagaj Pandizot Ayağı Pandizot Tutucu Askı Pimi 2 Adet Siyah", "barkod": "ARAYX26100005", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "HC-0405-KNS-MND", "ad": "ARAYX3D Honda Civic Accord 2004-2005 Uyumlu Orta Konsol Kolçak Kapak Mandalı Kilit Dili Siyah", "barkod": "ARAYX26100006", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "TY-E12-EFD-SYH", "ad": "ARAYX3D Toyota Corolla E12 2002-2007 Uyumlu El Freni Düğmesi Park Freni Butonu Siyah", "barkod": "ARAYX26100007", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "OP-CC-KLT-MND", "ad": "ARAYX3D Opel Corsa C 2000-2006 Uyumlu Koltuk Yatırma Mandalı Sırtlık Açma Kolu Siyah", "barkod": "ARAYX26100008", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "TY-0308-KLC-MNT", "ad": "ARAYX3D Toyota Corolla 2003-2008 Uyumlu Orta Konsol Kolçak Menteşe Ayağı 2li Set Siyah", "barkod": "ARAYX26100009", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "OP-MK-PND", "ad": "ARAYX3D Opel Mokka Uyumlu Bagaj Pandizot Ayağı Pandizot Tutucu Askı Siyah", "barkod": "ARAYX26100010", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "HN-FD6-KPT", "ad": "ARAYX3D Honda Civic FD6 2006-2011 Uyumlu Kaput Açma Kolu Kaput Çekme Aparatı Siyah", "barkod": "ARAYX26100011", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "HY-I20-GNS-2LI", "ad": "ARAYX3D Hyundai i20 Getz 2008-2015 Uyumlu Güneşlik Tutucu Klips Güneşlik Askısı 2li Set", "barkod": "ARAYX26100012", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "OP-CCAH-PND-2LI", "ad": "ARAYX3D Opel Corsa C Astra H Uyumlu Bagaj Pandizot Ayağı Pandizot Menteşesi 2 Adet Siyah", "barkod": "ARAYX26100013", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "SK-ST-ASK-KPK", "ad": "ARAYX3D Seat Leon Ibiza Skoda Fabia Superb Uyumlu Arka Silecek Kolu Somun Kapağı Siyah", "barkod": "ARAYX26100014", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "CT-KPT-KLP", "ad": "ARAYX3D Citroen C2 C3 C4 C5 Berlingo Uyumlu Kaput Çubuğu Tutucu Klipsi Kaput Ayağı Klipsi Siyah", "barkod": "ARAYX26100015", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "MB-C207-BRD", "ad": "ARAYX3D Mercedes E Serisi Coupe C207 2010-2016 Uyumlu Orta Konsol Bardaklık Aparatı Siyah", "barkod": "ARAYX26100016", "desi": 1, "kdv": 20, "fiyat": 499.99}, {"sku": "MB-W205-BRD", "ad": "ARAYX3D Mercedes C Serisi W205 2014-2018 Uyumlu Orta Konsol Bardaklık Aparatı C180 C200 Siyah", "barkod": "ARAYX26100017", "desi": 1, "kdv": 20, "fiyat": 499.99}, {"sku": "OP-AH-PND-TKZ", "ad": "ARAYX3D Opel Astra H Uyumlu Pandizot Titreşim Engelleyici Pandizot Takoz Plastiği 1 Adet Siyah", "barkod": "ARAYX26100018", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "HN-KPT-KOL-GRI", "ad": "ARAYX3D Honda Civic HR-V CR-V Uyumlu Kaput Açma Kolu Motor Kaputu Çekme Kolu Gri", "barkod": "ARAYX26100019", "desi": 1, "kdv": 20, "fiyat": 249.99}, {"sku": "BMW-E36-KSB", "ad": "ARAYX3D BMW E36 E90 Uyumlu Arka Cam Köşebent Arka Cam Fitil Köşe Kapağı Siyah", "barkod": "ARAYX26100020", "desi": 1, "kdv": 20, "fiyat": 249.99}];window.KOPRU_KODU="// ARAYX Kâr Paneli köprüsü (Cloudflare Worker)\n// Trendyol API'si tarayıcıdan doğrudan çağrılamaz; bu köprü araya girer.\n// YALNIZ OKUR: sadece GET yapar, fiyat/stok/sipariş değiştiremez.\n// Müşterinin kişisel bilgilerini siparişlerden çıkarır, uygulamaya göndermez.\n//\n// Cloudflare > Settings > Variables and Secrets (Secret olarak ekle):\n//   TRENDYOL_SATICI_ID   mağaza numarası\n//   TRENDYOL_API_KEY     Trendyol panelindeki API Key\n//   TRENDYOL_API_SECRET  Trendyol panelindeki API Secret\n//   ERISIM_KODU          Kâr Paneli'nin üreteceği uzun kod\n// İsteğe bağlı: IZINLI_ADRES (varsayılan https://arayxtech-afk.github.io)\n\nconst API = \"https://apigw.trendyol.com/integration\";\n\nconst yollar = {\n  \"/siparisler\": (id) => `/order/sellers/${id}/v2/orders`,\n  \"/urunler\": (id) => `/product/sellers/${id}/products/approved`,\n  \"/hakedis\": (id) => `/finance/che/sellers/${id}/settlements`,\n  \"/diger-finans\": (id) => `/finance/che/sellers/${id}/otherfinancials`,\n};\n\n// Müşteri adı, adres, telefon, e-posta ve vergi numarası köprüden geçmez:\n// siparişte yalnız aşağıda adı yazan alanlar döner, yeni eklenen alanlar da elenir.\nconst PAKET_ALANLARI = [\"shipmentPackageId\", \"orderNumber\", \"orderDate\", \"status\", \"cargoDeci\"];\nconst SATIR_ALANLARI = [\n  \"lineId\", \"barcode\", \"stockCode\", \"productName\", \"quantity\", \"lineUnitPrice\", \"lineGrossAmount\",\n  \"lineSellerDiscount\", \"lineTyDiscount\", \"vatRate\", \"commission\", \"orderLineItemStatusName\", \"discountDetails\",\n];\n\nfunction sec(nesne, alanlar) {\n  const cikti = {};\n  for (const a of alanlar) if (nesne[a] !== undefined) cikti[a] = nesne[a];\n  return cikti;\n}\n\nfunction siparisleriSuz(veri) {\n  return {\n    ...sec(veri, [\"page\", \"size\", \"totalPages\", \"totalElements\"]),\n    content: (veri.content || []).map((p) => ({\n      ...sec(p, PAKET_ALANLARI),\n      lines: (p.lines || []).map((l) => sec(l, SATIR_ALANLARI)),\n    })),\n  };\n}\n\nfunction ayniMi(a, b) {\n  if (typeof a !== \"string\" || typeof b !== \"string\" || a.length !== b.length) return false;\n  let fark = 0;\n  for (let i = 0; i < a.length; i++) fark |= a.charCodeAt(i) ^ b.charCodeAt(i);\n  return fark === 0;\n}\n\nfunction hedefYol(pathname, id) {\n  if (yollar[pathname]) return yollar[pathname](id);\n  const m = pathname.match(/^\\/kargo-fatura\\/([A-Za-z0-9_-]{1,64})$/);\n  if (m) return `/finance/che/sellers/${id}/cargo-invoice/${m[1]}/items`;\n  return null;\n}\n\nexport default {\n  async fetch(istek, env) {\n    const izinli = env.IZINLI_ADRES || \"https://arayxtech-afk.github.io\";\n    const cors = {\n      \"Access-Control-Allow-Origin\": izinli,\n      \"Access-Control-Allow-Methods\": \"GET, OPTIONS\",\n      \"Access-Control-Allow-Headers\": \"X-Erisim-Kodu\",\n      \"Access-Control-Max-Age\": \"86400\",\n      Vary: \"Origin\",\n    };\n    const yanit = (govde, durum) =>\n      new Response(JSON.stringify(govde), {\n        status: durum,\n        headers: { ...cors, \"Content-Type\": \"application/json; charset=utf-8\", \"Cache-Control\": \"no-store\" },\n      });\n\n    if (istek.method === \"OPTIONS\") return new Response(null, { status: 204, headers: cors });\n    if (istek.method !== \"GET\") return yanit({ hata: \"Bu köprü yalnız okur.\" }, 405);\n\n    const ayar = [\"TRENDYOL_SATICI_ID\", \"TRENDYOL_API_KEY\", \"TRENDYOL_API_SECRET\", \"ERISIM_KODU\"];\n    const eksik = ayar.filter((k) => !env[k]);\n    if (eksik.length) return yanit({ hata: \"Cloudflare'da eksik ayar: \" + eksik.join(\", \") }, 500);\n\n    if (!ayniMi(istek.headers.get(\"X-Erisim-Kodu\") || \"\", env.ERISIM_KODU)) {\n      return yanit({ hata: \"Erişim kodu yanlış.\" }, 401);\n    }\n\n    const url = new URL(istek.url);\n    if (url.pathname === \"/durum\") return yanit({ tamam: true }, 200);\n\n    const yol = hedefYol(url.pathname, env.TRENDYOL_SATICI_ID);\n    if (!yol) return yanit({ hata: \"Bilinmeyen adres.\" }, 404);\n\n    if (yol.includes(\"/finance/\") && !url.searchParams.has(\"supplierId\")) {\n      url.searchParams.set(\"supplierId\", env.TRENDYOL_SATICI_ID);\n    }\n\n    const cevap = await fetch(API + yol + url.search, {\n      headers: {\n        Authorization: \"Basic \" + btoa(env.TRENDYOL_API_KEY + \":\" + env.TRENDYOL_API_SECRET),\n        \"User-Agent\": env.TRENDYOL_SATICI_ID + \" - SelfIntegration\",\n        Accept: \"application/json\",\n      },\n    });\n    const metin = await cevap.text();\n    if (url.pathname === \"/siparisler\") {\n      if (!cevap.ok) return yanit({ hata: \"Trendyol hata verdi: \" + cevap.status }, cevap.status);\n      let veri;\n      try {\n        veri = JSON.parse(metin);\n      } catch (e) {\n        return yanit({ hata: \"Trendyol'dan okunamayan cevap geldi.\" }, 502);\n      }\n      return yanit(siparisleriSuz(veri), 200);\n    }\n    return new Response(metin, {\n      status: cevap.status,\n      headers: { ...cors, \"Content-Type\": \"application/json; charset=utf-8\", \"Cache-Control\": \"no-store\" },\n    });\n  },\n};\n";</script>
+</head><body>
+<title>ARAYX Kâr Paneli</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0B2340">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Atölye defteri düzeni: İş Takibi ile aynı aile. Tek sütun telefon, üstte başlık, altta 5 sekme; geniş ekranda iki sütun. Durum her yerde renk + yazı ile. */
+:root{
+  --bg:#F3F1ED; --surface:#FFFFFF; --surface2:#ECEFF2; --text:#16202C; --muted:#5C6672; --line:#DCE0E5;
+  --head:#0B2340; --btn:#0B2340; --btn-ink:#FFFFFF; --scan:#1579B8; --scan-soft:rgba(21,121,184,.12);
+  --ok:#1E7F4E; --ok-soft:rgba(30,127,78,.12); --warn:#94550A; --warn-soft:rgba(199,122,22,.15);
+  --bad:#C4362A; --bad-soft:rgba(196,54,42,.11); --hero:#0B2340; --hero-ink:#F6F3EE; --hero-muted:#AEBBCB;
+  --gider:#9AA3AE; --bar:#0B2340; --scrim:rgba(8,14,22,.45); --toast:#16202C; --toast-ink:#F6F3EE;
+  --display:"Barlow Condensed","Bahnschrift","Arial Narrow",sans-serif;
+  --body:"Barlow","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1113; --surface:#171A1E; --surface2:#21252A; --text:#ECEAE6; --muted:#A3ACB6; --line:#2B3037;
+  --head:#F6F3EE; --btn:#3FB8FF; --btn-ink:#04131D; --scan:#3FB8FF; --scan-soft:rgba(63,184,255,.14);
+  --ok:#43C68A; --ok-soft:rgba(67,198,138,.14); --warn:#EDA746; --warn-soft:rgba(237,167,70,.15);
+  --bad:#F2685A; --bad-soft:rgba(242,104,90,.14); --hero:#171F2A; --hero-ink:#F6F3EE; --hero-muted:#A3B0C0;
+  --gider:#69727D; --bar:#3FB8FF; --scrim:rgba(0,0,0,.6); --toast:#ECEAE6; --toast-ink:#16202C; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0F1113; --surface:#171A1E; --surface2:#21252A; --text:#ECEAE6; --muted:#A3ACB6; --line:#2B3037;
+  --head:#F6F3EE; --btn:#3FB8FF; --btn-ink:#04131D; --scan:#3FB8FF; --scan-soft:rgba(63,184,255,.14);
+  --ok:#43C68A; --ok-soft:rgba(67,198,138,.14); --warn:#EDA746; --warn-soft:rgba(237,167,70,.15);
+  --bad:#F2685A; --bad-soft:rgba(242,104,90,.14); --hero:#171F2A; --hero-ink:#F6F3EE; --hero-muted:#A3B0C0;
+  --gider:#69727D; --bar:#3FB8FF; --scrim:rgba(0,0,0,.6); --toast:#ECEAE6; --toast-ink:#16202C; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--text);font:16px/1.45 var(--body);padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button,input,select{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--display);font-weight:700;margin:0;line-height:1.1;text-wrap:balance;color:var(--head)}
+h2{font-size:1.45rem}
+h3{font-size:1.15rem}
+p{margin:0}
+.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.ust{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line);padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:10px}
+.ust svg{width:26px;height:26px;flex:none}
+.ust h1{font-size:1.35rem;letter-spacing:.02em}
+.ust .etiket{margin-left:auto;font:600 .72rem/1 var(--mono);color:var(--muted);white-space:nowrap}
+main{max-width:1080px;margin:0 auto;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+main>*{min-width:0}
+.kart{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:10px;min-width:0}
+.satirbas{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.not{font-size:.86rem;color:var(--muted)}
+.cipler{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-block:2px}
+.cipler::-webkit-scrollbar{display:none}
+.cip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-weight:600;font-size:.88rem;cursor:pointer;min-height:36px}
+.cip[aria-pressed="true"]{background:var(--btn);border-color:var(--btn);color:var(--btn-ink)}
+.bant{border-radius:8px;padding:10px 12px;font-size:.9rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.bant.warn{background:var(--warn-soft);color:var(--text)}
+.bant.warn b{color:var(--warn)}
+.bant.info{background:var(--scan-soft)}
+.btn{border:1px solid var(--btn);background:var(--btn);color:var(--btn-ink);border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer;min-height:42px}
+.btn.ikinci{background:transparent;color:var(--text);border-color:var(--line)}
+.btn.kucuk{padding:5px 10px;min-height:34px;font-size:.86rem}
+.btn.tehlike{background:transparent;color:var(--bad);border-color:var(--bad)}
+.btn:disabled{opacity:.55;cursor:default}
+:focus-visible{outline:2px solid var(--scan);outline-offset:2px}
+.hero{background:var(--hero);color:var(--hero-ink);border-radius:10px;padding:16px;display:grid;gap:12px}
+.hero .ad{font:600 .8rem/1 var(--mono);letter-spacing:.06em;color:var(--hero-muted)}
+.hero .deger{font:700 3.4rem/1 var(--display);overflow-wrap:anywhere}
+.hero .alt{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:560px){.hero .alt{grid-template-columns:repeat(4,1fr)}}
+.hero .alt b{display:block;font:600 1.05rem/1.2 var(--mono)}
+.hero .alt span{font-size:.78rem;color:var(--hero-muted)}
+.iki{display:grid;gap:14px}
+@media (min-width:860px){.iki{grid-template-columns:1fr 1fr;align-items:start}}
+.kopru{display:grid;gap:7px}
+.kopru .s{display:grid;grid-template-columns:minmax(92px,118px) 1fr auto;align-items:center;gap:8px;font-size:.9rem}
+.kopru .cubuk{height:10px;background:var(--surface2);border-radius:0 4px 4px 0;overflow:hidden;min-width:0}
+.kopru .dolu{height:100%;background:var(--gider);border-radius:0 4px 4px 0}
+.kopru .s.ciro .dolu{background:var(--bar)}
+.kopru .s.net .dolu{background:var(--ok)}
+.kopru .s.net.eksi .dolu{background:var(--bad)}
+.kopru .s.net{font-weight:700;border-top:1px solid var(--line);padding-top:7px}
+.kopru .tut{font-family:var(--mono);font-size:.84rem;text-align:right;white-space:nowrap}
+.grafik{position:relative;width:100%}
+.grafik svg{display:block;width:100%;height:auto;touch-action:pan-y}
+.ipucu{position:absolute;pointer-events:none;background:var(--toast);color:var(--toast-ink);font-size:.8rem;padding:6px 8px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-100%);z-index:3}
+details>summary{cursor:pointer;font-weight:600;font-size:.9rem;min-height:30px}
+.tablo-kap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th{font:600 .74rem/1.2 var(--body);color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.r,th.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.liste{display:grid}
+.oge{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:10px 0;border-bottom:1px solid var(--line);background:none;border-left:0;border-right:0;border-top:0;text-align:left;width:100%;cursor:pointer}
+.liste .oge:last-child{border-bottom:0}
+.oge .ad{font-weight:600;font-size:.94rem;overflow-wrap:anywhere}
+.oge .kod{font:500 .74rem/1.3 var(--mono);color:var(--muted);overflow-wrap:anywhere}
+.oge .sag{text-align:right;font-family:var(--mono);font-weight:600;white-space:nowrap}
+.oge .sag small{display:block;font-weight:500;color:var(--muted);font-size:.74rem}
+.rozet{display:inline-flex;align-items:center;gap:4px;font:600 .72rem/1 var(--body);padding:3px 7px;border-radius:999px;white-space:nowrap}
+.rozet.ok{background:var(--ok-soft);color:var(--ok)}
+.rozet.warn{background:var(--warn-soft);color:var(--warn)}
+.rozet.bad{background:var(--bad-soft);color:var(--bad)}
+.rozet.gri{background:var(--surface2);color:var(--muted)}
+.dikkat{display:grid;gap:8px}
+.dikkat .d{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;font-size:.9rem;border-left:3px solid var(--warn);padding:2px 0 2px 10px}
+.dikkat .d.bad{border-left-color:var(--bad)}
+.dikkat .d.ok{border-left-color:var(--ok)}
+.eksi{color:var(--bad)}
+.arti{color:var(--ok)}
+.alan{display:grid;gap:4px;min-width:0}
+.alan label{font-size:.82rem;font-weight:600;color:var(--muted)}
+.alan input,.alan select{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 10px;min-height:42px;font-size:16px}
+.alanlar{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:10px}
+.dokum{display:grid;gap:5px;font-size:.92rem}
+.dokum .s{display:flex;justify-content:space-between;gap:12px}
+.dokum .s span:last-child{font-family:var(--mono);white-space:nowrap}
+.dokum .s.top{font-weight:700;border-top:1px solid var(--line);padding-top:6px;font-size:1rem}
+.tah{font:600 .66rem/1 var(--mono);color:var(--warn);margin-left:4px}
+.ger{font:600 .66rem/1 var(--mono);color:var(--ok);margin-left:4px}
+.onay{display:flex;gap:10px;align-items:flex-start;font-size:.92rem}
+.onay input{width:20px;height:20px;flex:none;margin-top:2px}
+.sekmeler{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.sekme{background:none;border:0;padding:9px 2px 8px;display:grid;justify-items:center;gap:3px;font:600 .72rem/1 var(--body);color:var(--muted);cursor:pointer;min-height:58px}
+.sekme svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sekme[aria-current="page"]{color:var(--scan)}
+.perde{position:fixed;inset:0;background:var(--scrim);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.levha{background:var(--surface);width:100%;max-width:560px;max-height:90%;overflow-y:auto;border-radius:14px 14px 0 0;padding:16px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));display:grid;gap:12px}
+@media (min-width:640px){.perde{align-items:center}.levha{border-radius:14px}}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--toast);color:var(--toast-ink);padding:9px 14px;border-radius:8px;font-size:.9rem;z-index:30;max-width:calc(100% - 32px)}
+.adim{counter-reset:a;display:grid;gap:8px;padding:0;margin:0;list-style:none;font-size:.92rem}
+.adim li{counter-increment:a;display:grid;grid-template-columns:24px 1fr;gap:8px}
+.adim li::before{content:counter(a);font:600 .8rem/24px var(--mono);text-align:center;background:var(--surface2);border-radius:50%;height:24px}
+.kopya{font:500 .82rem/1.4 var(--mono);background:var(--surface2);border-radius:6px;padding:6px 8px;overflow-wrap:anywhere;user-select:all}
+.sira{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="ust">
+  <svg viewBox="0 0 170 170" aria-hidden="true"><path d="M27,153 L77,13 L99,13 L147,153 L121,153 L88,51 L53,153 Z" fill="var(--head)"/><path d="M7,163 Q71,113 163,71 Q85,125 7,163 Z" fill="var(--scan)"/></svg>
+  <h1>Kâr Paneli</h1>
+  <span class="etiket" id="ustEtiket"></span>
+</header>
+<main id="ekran" aria-live="polite"></main>
+<nav class="sekmeler" id="sekmeler" aria-label="Bölümler"></nav>
+<div id="katman"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+"use strict";
+/* ---------- Hesap motoru: fiyat_hesap.py ile aynı maliyet formülü ---------- */
+const VARSAYILAN = {
+  filamentKg:900, fire:12, makineSaat:15, iscilikSaat:300, ambalaj:20,
+  kdv:20, kdvMahsup:true, stopajOran:1, stopajGider:true, iadeParcaKayip:true,
+  hedefMarj:20, kritikMarj:10,
+  kargo:[{ust:150,tl:80},{ust:300,tl:80},{ust:0,tl:80}], iadeKargo:80,
+  kanallar:{Trendyol:{komisyon:15,sabit:0,hizmet:0},Hepsiburada:{komisyon:15,sabit:10,hizmet:0},N11:{komisyon:15,sabit:0,hizmet:0}},
+  onay:{uretim:false,kargo:false,komisyon:false}
+};
+function uretimKirilim(u,A){
+  const fil=(+u.gram||0)*(1+(+A.fire||0)/100)*(+A.filamentKg||0)/1000;
+  const mak=(+u.saat||0)*(+A.makineSaat||0);
+  const isc=((+u.iscilikDk||0)/60)*(+A.iscilikSaat||0);
+  const amb=u.ambalaj===""||u.ambalaj==null?(+A.ambalaj||0):+u.ambalaj;
+  return {fil,mak,isc,amb,toplam:fil+mak+isc+amb,kdvli:fil+amb};
+}
+function maliyetVar(u){return !!u&&(+u.gram>0||+u.saat>0||u.elMaliyet>0)}
+function birimMaliyet(u,A){
+  if(u&&u.elMaliyet>0)return {fil:0,mak:0,isc:0,amb:0,toplam:+u.elMaliyet,kdvli:+u.elMaliyet};
+  return u?uretimKirilim(u,A):{fil:0,mak:0,isc:0,amb:0,toplam:0,kdvli:0};
+}
+function kargoTarife(tutar,A){
+  for(const b of A.kargo){if(+b.ust>0&&tutar<+b.ust)return +b.tl}
+  const son=A.kargo[A.kargo.length-1];return son?+son.tl:0;
+}
+/* Tüm giderler KDV dahil kabul edilir. Net = KDV dahil satış - giderler - net KDV - stopaj */
+function netHesap({brut,kdv,komisyon,kargo,hizmet,uretim,uretimKdvli},A){
+  const k=kdv/100;
+  const satisKdv=brut*k/(1+k);
+  const giderKdv=A.kdvMahsup?((komisyon+kargo+hizmet+uretimKdvli)*0.2/1.2):0;
+  const netKdv=satisKdv-giderKdv;
+  const stopaj=A.stopajGider?(brut/(1+k))*(+A.stopajOran||0)/100:0;
+  const net=brut-komisyon-kargo-hizmet-uretim-netKdv-stopaj;
+  const kdvHaric=brut/(1+k);
+  return {brut,komisyon,kargo,hizmet,uretim,netKdv,stopaj,net,marj:kdvHaric>0?net/kdvHaric*100:0,kdvHaric};
+}
+function fiyatTest(fiyat,u,kanal,A,komOran){
+  const K=A.kanallar[kanal]||{komisyon:0,sabit:0,hizmet:0};
+  const m=birimMaliyet(u,A);
+  const oran=komOran!=null&&komOran!==""?+komOran:(u&&u.komisyon!=null&&u.komisyon!==""&&kanal==="Trendyol"?+u.komisyon:+K.komisyon);
+  return netHesap({brut:fiyat,kdv:u&&+u.kdv?+u.kdv:+A.kdv,komisyon:fiyat*oran/100+(+K.sabit||0),kargo:kargoTarife(fiyat,A),hizmet:+K.hizmet||0,uretim:m.toplam,uretimKdvli:m.kdvli},A);
+}
+function fiyatBul(hedefMarj,u,kanal,A,komOran){
+  let alt=1,ust=200000;
+  if(fiyatTest(ust,u,kanal,A,komOran).marj<hedefMarj)return null;
+  for(let i=0;i<60;i++){const o=(alt+ust)/2;if(fiyatTest(o,u,kanal,A,komOran).marj>=hedefMarj)ust=o;else alt=o}
+  /* Kargo baremi fiyatla atladığı için en düşük geçerli fiyat taranır */
+  let p=Math.ceil((ust+0.01)/5)*5-0.01;
+  for(let d=5;d<ust;d+=5){const a=Math.ceil((d+0.01)/5)*5-0.01;if(fiyatTest(a,u,kanal,A,komOran).marj>=hedefMarj){p=a;break}}
+  return p;
+}
+function paketKey(k){return k.kanal+"|"+k.paket}
+/* Paket düzeyindeki kargo ve hizmet bedeli satırlara ciro payına göre bölünür. */
+function satirlariHesapla(kalemler,urunler,A,kargolar){
+  const paketler=new Map();
+  for(const k of kalemler){if(k.durum==="iptal")continue;const key=paketKey(k);if(!paketler.has(key))paketler.set(key,[]);paketler.get(key).push(k)}
+  const sonuc=[];
+  for(const satirlar of paketler.values()){
+    const p=satirlar[0];
+    const K=A.kanallar[p.kanal]||{komisyon:0,sabit:0,hizmet:0};
+    const toplamBrut=satirlar.reduce((t,k)=>t+(k.durum==="iade"?0:+k.brut||0),0);
+    const fat=kargolar&&kargolar[p.siparisNo];
+    const kargoGercek=fat&&fat.gidis>0;
+    const gidis=kargoGercek?fat.gidis/(fat.paket||1):(p.kargoTL!=null?+p.kargoTL:kargoTarife(toplamBrut||satirlar.reduce((t,k)=>t+(+k.brut||0),0),A));
+    const iadeVar=satirlar.some(k=>k.durum==="iade");
+    const donus=iadeVar?(fat&&fat.iade>0?fat.iade/(fat.paket||1):+A.iadeKargo||0):0;
+    const kargoPaket=gidis+donus;
+    const hizmetPaket=+K.hizmet||0;
+    const pay0=satirlar.length;
+    for(const k of satirlar){
+      const u=urunler[k.sku]||urunler[k.barkod]||null;
+      const iade=k.durum==="iade";
+      const brut=iade?0:(+k.brut||0);
+      const pay=toplamBrut>0?brut/toplamBrut:(1/pay0);
+      const oran=k.komisyonOran!=null?+k.komisyonOran:(u&&u.komisyon!=null&&u.komisyon!==""?+u.komisyon:+K.komisyon);
+      const komGercek=k.komisyonTL!=null;
+      const kom=iade?0:(komGercek?+k.komisyonTL:brut*oran/100+(+K.sabit||0)*pay);
+      const m=birimMaliyet(u,A);
+      const adet=+k.adet||1;
+      const kayip=iade&&!A.iadeParcaKayip;
+      const uretim=kayip?0:m.toplam*adet;
+      const n=netHesap({brut,kdv:k.kdvOran!=null?+k.kdvOran:(u&&+u.kdv?+u.kdv:+A.kdv),komisyon:kom,kargo:kargoPaket*pay,hizmet:hizmetPaket*pay,uretim,uretimKdvli:kayip?0:m.kdvli*adet},A);
+      sonuc.push({...n,k,u,oran,adet,komGercek,kargoGercek:!!kargoGercek||p.kargoTL!=null,maliyetEksik:!maliyetVar(u),iade});
+    }
+  }
+  return sonuc.sort((a,b)=>b.k.tarih-a.k.tarih);
+}
+function topla(s){
+  const t={brut:0,kdvHaric:0,netKdv:0,komisyon:0,kargo:0,hizmet:0,stopaj:0,uretim:0,net:0,adet:0,iade:0};
+  const pk=new Set();
+  for(const r of s){for(const a of ["brut","kdvHaric","netKdv","komisyon","kargo","hizmet","stopaj","uretim","net"])t[a]+=r[a];if(!r.iade)t.adet+=r.adet;else t.iade++;pk.add(paketKey(r.k))}
+  t.paket=pk.size;t.marj=t.kdvHaric>0?t.net/t.kdvHaric*100:0;return t;
+}
+/* ---------- Veri deposu: Claude'da db, telefonda localStorage ---------- */
+const Depo={
+  db:null,
+  bellek:{},
+  async baslat(){
+    if(window.claude&&window.claude.use){try{this.db=await window.claude.use("db")}catch(e){this.db=null}}
+  },
+  async hepsi(){
+    const cikti={};
+    if(this.db){
+      const snap=await this.db.collection("veri").get();
+      snap.docs.forEach(d=>{cikti[d.id]=d.data()});
+      return cikti;
+    }
+    try{for(let i=0;i<localStorage.length;i++){const a=localStorage.key(i);if(a.startsWith("kar:"))cikti[a.slice(4)]=JSON.parse(localStorage.getItem(a))}}catch(e){}
+    return cikti;
+  },
+  async yaz(ad,veri){
+    if(this.db){await this.db.collection("veri").doc(ad).set(veri);return}
+    try{localStorage.setItem("kar:"+ad,JSON.stringify(veri))}catch(e){uyar(e&&e.name==="QuotaExceededError"?"Telefonda yer kalmadı. Yedek alıp eski veriyi temizle.":"Bu görünümde kayıt yapılamıyor. Gizli sekmedeysen normal sekmede aç.")}
+  },
+  async sil(ad){
+    if(this.db){await this.db.collection("veri").doc(ad).delete();return}
+    try{localStorage.removeItem("kar:"+ad)}catch(e){}
+  },
+  kopruAl(){try{return JSON.parse(localStorage.getItem("karCihaz:kopru")||"{}")}catch(e){return {}}},
+  kopruYaz(v){try{localStorage.setItem("karCihaz:kopru",JSON.stringify(v))}catch(e){}}
+};
+const artifactte=!!window.claude;
+const D={ayar:JSON.parse(JSON.stringify(VARSAYILAN)),urunler:{},kalemler:{},kargolar:{},odemeler:{},hizmetFatura:{},sonCekim:null,yuklendi:false};
+const G={sekme:"ozet",donem:"buay",kanal:"Hepsi",sipFiltre:"tum",urunAra:"",fiyatSku:"",fiyatKanal:"Trendyol",fiyat:"",fiyatKom:"",hedefMarj:"",kampanya:""};
+let yazZaman={};
+function yazErtele(ad,uret){clearTimeout(yazZaman[ad]);yazZaman[ad]=setTimeout(()=>{Depo.yaz(ad,uret()).catch(()=>uyar("Kaydedilemedi. İnternet bağlantını kontrol et."))},500)}
+function ayarKaydet(){yazErtele("ayarlar",()=>D.ayar)}
+function urunlerKaydet(){yazErtele("urunler",()=>({u:D.urunler}))}
+async function kalemleriKaydet(){
+  const aylar={};
+  for(const k of Object.values(D.kalemler)){const a=ayAnahtar(k.tarih);(aylar[a]=aylar[a]||[]).push(k)}
+  for(const [a,liste] of Object.entries(aylar)){
+    for(let i=0;i*600<liste.length;i++)await Depo.yaz("kalem_"+a+"_"+i,{k:liste.slice(i*600,(i+1)*600)});
+  }
+  await Depo.yaz("finans",{kargolar:D.kargolar,odemeler:D.odemeler,hizmetFatura:D.hizmetFatura,sonCekim:D.sonCekim});
+}
+function ayAnahtar(ms){const t=new Date(ms);return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")}
+function birlestirAyar(a){
+  const v=JSON.parse(JSON.stringify(VARSAYILAN));
+  return {...v,...a,kanallar:{...v.kanallar,...(a.kanallar||{})},onay:{...v.onay,...(a.onay||{})},kargo:a.kargo&&a.kargo.length?a.kargo:v.kargo};
+}
+async function yukle(){
+  await Depo.baslat();
+  let h={};
+  try{h=await Depo.hepsi()}catch(e){uyar("Kayıtlı veri okunamadı. Sayfayı yenile.")}
+  if(h.ayarlar)D.ayar=birlestirAyar(h.ayarlar);
+  if(h.urunler&&h.urunler.u)D.urunler=h.urunler.u;
+  else if(window.BASLANGIC_URUNLER){window.BASLANGIC_URUNLER.forEach(u=>{D.urunler[u.sku]=u})}
+  for(const [ad,v] of Object.entries(h)){if(ad.startsWith("kalem_")&&v.k)v.k.forEach(k=>{D.kalemler[k.id]=k})}
+  if(h.finans){D.kargolar=h.finans.kargolar||{};D.odemeler=h.finans.odemeler||{};D.hizmetFatura=h.finans.hizmetFatura||{};D.sonCekim=h.finans.sonCekim||null}
+  D.yuklendi=true;ciz();
+}
+/* ---------- Örnek veri: gerçek sipariş yokken ekranı göstermek için ---------- */
+const ORNEK_URUN={"ORNEK-A":{sku:"ORNEK-A",ad:"Örnek ürün A (el freni düğmesi)",fiyat:249.99,gram:12,saat:1.2,komisyon:15,kdv:20},"ORNEK-B":{sku:"ORNEK-B",ad:"Örnek ürün B (bardaklık)",fiyat:499.99,gram:95,saat:7,komisyon:15,kdv:20},"ORNEK-C":{sku:"ORNEK-C",ad:"Örnek ürün C (4'lü klips, düşük fiyat)",fiyat:119.99,gram:30,saat:3,komisyon:15,kdv:20}};
+function ornekKalemler(){
+  const c=[];let t=7;const r=()=>(t=(t*16807)%2147483647)/2147483647;const su=Date.now();const sku=Object.keys(ORNEK_URUN);
+  for(let g=0;g<55;g++){
+    const n=Math.floor(r()*3);
+    for(let i=0;i<n;i++){
+      const s=sku[Math.floor(r()*3)];const u=ORNEK_URUN[s];const z=r();
+      c.push({id:"o"+g+"-"+i,kanal:z<.68?"Trendyol":z<.9?"Hepsiburada":"N11",paket:"O"+g+i,siparisNo:"O"+g+i,tarih:su-g*864e5-3600e3*5,durum:r()<.07?"iade":r()<.12?"yolda":"teslim",sku:s,ad:u.ad,adet:1,brut:u.fiyat,kdvOran:20,komisyonOran:15});
+    }
+  }
+  return c;
+}
+function gorunen(){
+  const gercek=Object.values(D.kalemler);
+  return gercek.length?{kalemler:gercek,urunler:D.urunler,ornek:false}:{kalemler:ornekKalemler(),urunler:{...D.urunler,...ORNEK_URUN},ornek:true};
+}
+/* ---------- Yardımcılar ---------- */
+const $=(s,k=document)=>k.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt0=new Intl.NumberFormat("tr-TR",{maximumFractionDigits:0});
+const fmt2=new Intl.NumberFormat("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const tl=x=>fmt2.format(x||0)+" TL";
+const tl0=x=>fmt0.format(Math.round(x||0))+" TL";
+const dus=v=>{const y=Math.round((v||0)*100)/100;return y===0?tl(0):(y>0?"-":"+")+tl(Math.abs(y))};
+const yuzde=x=>"%"+new Intl.NumberFormat("tr-TR",{maximumFractionDigits:1}).format(x||0);
+const tarihYaz=ms=>new Date(ms).toLocaleDateString("tr-TR",{day:"2-digit",month:"2-digit",year:"numeric"});
+const gunYaz=ms=>new Date(ms).toLocaleDateString("tr-TR",{day:"numeric",month:"short"});
+function uyar(m){const k=document.createElement("div");k.className="toast";k.setAttribute("role","status");k.textContent=m;document.body.appendChild(k);setTimeout(()=>k.remove(),3400)}
+function donemAralik(d){
+  const su=new Date();const b=new Date(su.getFullYear(),su.getMonth(),su.getDate());
+  if(d==="buay"){const s=new Date(su.getFullYear(),su.getMonth(),1);const u=su.getTime();const onS=new Date(su.getFullYear(),su.getMonth()-1,1).getTime();return {s:s.getTime(),e:u,os:onS,oe:s.getTime(),ad:"Bu ay",onAd:"geçen ay"}}
+  if(d==="gecenay"){const s=new Date(su.getFullYear(),su.getMonth()-1,1);const e=new Date(su.getFullYear(),su.getMonth(),1);return {s:s.getTime(),e:e.getTime(),os:new Date(su.getFullYear(),su.getMonth()-2,1).getTime(),oe:s.getTime(),ad:"Geçen ay",onAd:"önceki ay"}}
+  const g=d==="7"?7:30;const s=b.getTime()-(g-1)*864e5;return {s,e:su.getTime(),os:s-g*864e5,oe:s,ad:"Son "+g+" gün",onAd:"önceki "+g+" gün"};
+}
+function marjRozet(m,A){return m<0?'<span class="rozet bad">▼ Zarar</span>':m<+A.kritikMarj?'<span class="rozet warn">! Düşük marj</span>':'<span class="rozet ok">✓ Kârlı</span>'}
+function urunAd(r){return (r.u&&r.u.ad)||r.k.ad||r.k.sku||r.k.barkod||"Bilinmeyen ürün"}
+/* ---------- Sekmeler ---------- */
+const SEKME=[
+ ["ozet","Özet",'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
+ ["urunler","Ürünler",'<path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8"/>'],
+ ["fiyat","Fiyat",'<path d="M20 12l-8 8-9-9V3h8zM7.5 7.5h.01"/>'],
+ ["siparis","Siparişler",'<path d="M4 6h16M4 12h16M4 18h10"/>'],
+ ["veri","Veri",'<path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>']];
+function sekmeCiz(){
+  $("#sekmeler").innerHTML=SEKME.map(([id,ad,ik])=>`<button class="sekme" data-sekme="${id}" ${G.sekme===id?'aria-current="page"':""}><svg viewBox="0 0 24 24" aria-hidden="true">${ik}</svg>${ad}</button>`).join("");
+}
+function etiketYaz(){
+  const t=$("#ustEtiket");if(!t)return;
+  if(!Object.keys(D.kalemler).length){t.textContent="[ ÖRNEK VERİ ]";return}
+  if(OTO.hata){t.textContent="Güncellenemedi";return}
+  if(OTO.basari){t.textContent="Güncel "+new Date(OTO.basari).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});return}
+  t.textContent=D.sonCekim?"Son çekim "+gunYaz(D.sonCekim):"[ GERÇEK VERİ ]";
+}
+function ciz(){
+  sekmeCiz();
+  etiketYaz();
+  const e=$("#ekran");
+  ({ozet:ozetCiz,urunler:urunlerCiz,fiyat:fiyatCiz,siparis:siparisCiz,veri:veriCiz})[G.sekme](e);
+}
+function ornekBant(){return `<div class="bant warn"><span><b>Örnek veri.</b> Bu rakamlar senin satışların değil. Siparişlerini yükleyince kaybolur.</span><button class="btn kucuk" data-git="veri">Siparişleri yükle</button></div>`}
+function teyitBant(A){
+  const eksik=[];if(!A.onay.uretim)eksik.push("üretim maliyeti");if(!A.onay.kargo)eksik.push("kargo tarifesi");if(!A.onay.komisyon)eksik.push("komisyon ve hizmet bedeli");
+  return eksik.length?`<div class="bant warn"><span><b>Teyit bekliyor:</b> ${eksik.join(", ")} şimdilik örnek değerle hesaplanıyor.</span><button class="btn kucuk ikinci" data-git="veri" data-odak="ayarlar">Ayarlara git</button></div>`:"";
+}
+/* ---------- Özet ---------- */
+function ozetCiz(e){
+  const {kalemler,urunler,ornek}=gorunen();const A=D.ayar;
+  const ar=donemAralik(G.donem);
+  const hepsi=satirlariHesapla(kalemler,urunler,A,D.kargolar).filter(r=>G.kanal==="Hepsi"||r.k.kanal===G.kanal);
+  const s=hepsi.filter(r=>r.k.tarih>=ar.s&&r.k.tarih<ar.e);
+  const on=hepsi.filter(r=>r.k.tarih>=ar.os&&r.k.tarih<ar.oe);
+  const t=topla(s),to=topla(on);
+  const kanallar=["Hepsi",...new Set(kalemler.map(k=>k.kanal))];
+  const fark=on.length?t.net-to.net:null;
+  const maks=Math.max(t.brut,Math.abs(t.net),1);
+  const kopru=[["Ciro (KDV dahil)",t.brut,"ciro"],["Net KDV",-t.netKdv,""],["Komisyon",-t.komisyon,""],["Kargo",-t.kargo,""],["Hizmet bedeli",-t.hizmet,""],["Stopaj",-t.stopaj,""],["Üretim maliyeti",-t.uretim,""]];
+  const urunMap={};
+  s.forEach(r=>{const a=r.k.sku||r.k.barkod;const m=urunMap[a]=urunMap[a]||{ad:urunAd(r),adet:0,net:0,brut:0,sku:a,eksik:r.maliyetEksik,kdvHaric:0};m.adet+=r.adet;m.net+=r.net;m.brut+=r.brut;m.kdvHaric+=r.kdvHaric});
+  const urunListe=Object.values(urunMap).sort((a,b)=>b.net-a.net);
+  const zarar=urunListe.filter(u=>u.net<0);
+  const eksikMal=new Set(s.filter(r=>r.maliyetEksik).map(r=>r.k.sku||r.k.barkod));
+  const tahminiKargo=s.filter(r=>!r.kargoGercek).length;
+  const dik=[];
+  if(zarar.length)dik.push(["bad","▼",`<b>${zarar.length} ürün zarar ediyor:</b> ${zarar.slice(0,3).map(u=>esc(u.ad)+" ("+tl0(u.net)+")").join(", ")}`]);
+  urunListe.filter(u=>u.net>=0&&u.kdvHaric>0&&u.net/u.kdvHaric*100<+A.kritikMarj).slice(0,2).forEach(u=>dik.push(["warn","!",`<b>${esc(u.ad)}</b> marjı ${yuzde(u.net/u.kdvHaric*100)}, sınırın altında.`]));
+  if(eksikMal.size)dik.push(["warn","!",`<b>${eksikMal.size} üründe maliyet yok.</b> Net kâr gerçekte daha düşük. <button class="btn kucuk ikinci" data-git="urunler">Maliyet gir</button>`]);
+  if(t.iade)dik.push(["warn","↩",`<b>${t.iade} iade</b> bu dönemde. Gidiş ve dönüş kargosu kârdan düşüldü.`]);
+  if(tahminiKargo&&s.length&&!ornek)dik.push(["warn","~",`${tahminiKargo} satırda kargo tahmini. Gerçek tutar kargo faturası gelince yazılır.`]);
+  const kontrol=kontrolBul(s);
+  if(kontrol.length)dik.push(["bad","⚑",`<b>${kontrol.length} kesinti farkı</b> bulundu. <button class="btn kucuk ikinci" data-sipf="kontrol">İncele</button>`]);
+  if(!dik.length&&s.length)dik.push(["ok","✓","Bu dönemde zarar eden ürün yok."]);
+  const yaklasan=yaklasanOdeme();
+  e.innerHTML=`
+  ${ornek?ornekBant():teyitBant(A)}
+  <div class="cipler" role="group" aria-label="Dönem">${[["buay","Bu ay"],["gecenay","Geçen ay"],["7","7 gün"],["30","30 gün"]].map(([d,a])=>`<button class="cip" data-donem="${d}" aria-pressed="${G.donem===d}">${a}</button>`).join("")}</div>
+  ${kanallar.length>2?`<div class="cipler" role="group" aria-label="Kanal">${kanallar.map(k=>`<button class="cip" data-kanal="${esc(k)}" aria-pressed="${G.kanal===k}">${esc(k)}</button>`).join("")}</div>`:""}
+  <section class="hero">
+    <span class="ad">NET KÂR · ${esc(ar.ad).toLocaleUpperCase("tr-TR")}</span>
+    <div class="deger">${tl0(t.net)}</div>
+    <div class="alt">
+      <div><b>${yuzde(t.marj)}</b><span>Net marj</span></div>
+      <div><b>${fmt0.format(t.paket)}</b><span>Sipariş</span></div>
+      <div><b>${fmt0.format(t.adet)}</b><span>Satılan adet</span></div>
+      <div><b>${fark==null?"-":(fark>=0?"+":"")+tl0(fark)}</b><span>${esc(ar.onAd)} farkı</span></div>
+    </div>
+  </section>
+  <div class="iki">
+    <section class="kart"><h2>Para nereye gitti</h2>
+      ${s.length?`<div class="kopru">${kopru.map(([a,v,c])=>`<div class="s ${c}"><span>${a}</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(v)/maks*100}%"></div></div><span class="tut">${v<0?"-":""}${tl0(Math.abs(v))}</span></div>`).join("")}<div class="s net ${t.net<0?"eksi":""}"><span>Net kâr</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(t.net)/maks*100}%"></div></div><span class="tut">${tl0(t.net)}</span></div></div>`:`<p class="not">Bu dönemde sipariş yok.</p>`}
+    </section>
+    <section class="kart"><h2>Dikkat</h2><div class="dikkat">${dik.map(([c,i,m])=>`<div class="d ${c}"><span aria-hidden="true">${i}</span><span>${m}</span></div>`).join("")||'<p class="not">Bu dönemde sipariş yok.</p>'}</div></section>
+  </div>
+  <section class="kart"><div class="satirbas"><h2>Günlük net kâr</h2><span class="not">Üstü kâr, altı zarar</span></div>${gunlukGrafik(s,ar)}</section>
+  <div class="iki">
+    <section class="kart"><h2>En çok kazandıranlar</h2>${urunTablo(urunListe.slice(0,5))}</section>
+    <section class="kart"><h2>En az kazandıranlar</h2>${urunTablo(urunListe.slice(-5).reverse())}</section>
+  </div>
+  ${yaklasan.length?`<section class="kart"><h2>Yatacak para</h2><div class="tablo-kap"><table><thead><tr><th>Vade</th><th class="r">Tutar</th></tr></thead><tbody>${yaklasan.map(y=>`<tr><td>${tarihYaz(y.t)}</td><td class="r">${tl(y.tutar)}</td></tr>`).join("")}</tbody></table></div></section>`:""}`;
+  grafikBagla(e);
+}
+function urunTablo(l){
+  if(!l.length)return '<p class="not">Bu dönemde satış yok.</p>';
+  return `<div class="tablo-kap"><table><thead><tr><th>Ürün</th><th class="r">Adet</th><th class="r">Net kâr</th></tr></thead><tbody>${l.map(u=>`<tr><td>${esc(u.ad)}${u.eksik?' <span class="rozet warn">maliyet yok</span>':""}</td><td class="r">${u.adet}</td><td class="r ${u.net<0?"eksi":""}">${tl0(u.net)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function gunlukGrafik(s,ar){
+  if(!s.length)return '<p class="not">Bu dönemde sipariş yok.</p>';
+  const gunler=[];for(let g=new Date(ar.s);g.getTime()<ar.e;g.setDate(g.getDate()+1))gunler.push({t:g.getTime(),net:0,n:0});
+  const bul=ms=>{const d=new Date(ms);d.setHours(0,0,0,0);return gunler.find(g=>{const x=new Date(g.t);x.setHours(0,0,0,0);return x.getTime()===d.getTime()})};
+  s.forEach(r=>{const g=bul(r.k.tarih);if(g){g.net+=r.net;g.n++}});
+  const W=Math.max(300,Math.min(1000,($("#ekran").clientWidth||360)-30)),H=210,sol=46,sag=6,ust=10,alt=24;
+  const mx=Math.max(...gunler.map(g=>g.net),0),mn=Math.min(...gunler.map(g=>g.net),0);
+  const adim=temizAdim((mx-mn)||1);const ustD=Math.ceil(mx/adim)*adim;const altD=Math.floor(mn/adim)*adim;
+  const y=v=>ust+(ustD-v)/((ustD-altD)||1)*(H-ust-alt);
+  const bw=(W-sol-sag)/gunler.length;const kal=Math.min(24,Math.max(3,bw-2));
+  let tik="";for(let v=altD;v<=ustD+1e-6;v+=adim){tik+=`<line x1="${sol}" x2="${W-sag}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${sol-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--mono)">${kisa(v)}</text>`}
+  const bas=gunler.map((g,i)=>{
+    const x=sol+i*bw+(bw-kal)/2;const y0=y(0),y1=y(g.net);const h=Math.abs(y1-y0);
+    if(!g.n||h<.5)return "";
+    const r=Math.min(4,h,kal/2);
+    const d=g.net>=0?`M${x},${y0}V${y1+r}Q${x},${y1} ${x+r},${y1}H${x+kal-r}Q${x+kal},${y1} ${x+kal},${y1+r}V${y0}Z`:`M${x},${y0}V${y1-r}Q${x},${y1} ${x+r},${y1}H${x+kal-r}Q${x+kal},${y1} ${x+kal},${y1-r}V${y0}Z`;
+    return `<path d="${d}" fill="${g.net>=0?"var(--bar)":"var(--bad)"}"/>`;
+  }).join("");
+  const hit=gunler.map((g,i)=>`<rect class="vur" x="${sol+i*bw}" y="${ust}" width="${bw}" height="${H-ust-alt}" fill="transparent" data-i="${i}" data-g="${esc(gunYaz(g.t))}" data-n="${esc(tl(g.net))}" data-s="${g.n}"/>`).join("");
+  const eti=[0,Math.floor((gunler.length-1)/2),gunler.length-1].filter((v,i,a)=>a.indexOf(v)===i).map(i=>`<text x="${sol+i*bw+bw/2}" y="${H-7}" text-anchor="${i===0?"start":i===gunler.length-1?"end":"middle"}" font-size="11" fill="var(--muted)">${esc(gunYaz(gunler[i].t))}</text>`).join("");
+  return `<div class="grafik"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Günlük net kâr sütun grafiği">${tik}${bas}${eti}${hit}</svg></div>
+  <details><summary>Tablo olarak gör</summary><div class="tablo-kap"><table><thead><tr><th>Gün</th><th class="r">Satır</th><th class="r">Net kâr</th></tr></thead><tbody>${gunler.filter(g=>g.n).reverse().map(g=>`<tr><td>${esc(gunYaz(g.t))}</td><td class="r">${g.n}</td><td class="r ${g.net<0?"eksi":""}">${tl(g.net)}</td></tr>`).join("")}</tbody></table></div></details>`;
+}
+function temizAdim(a){const k=Math.pow(10,Math.floor(Math.log10(a/3)));const o=a/3/k;return (o<=1?1:o<=2?2:o<=5?5:10)*k}
+function kisa(v){return Math.abs(v)>=1000?new Intl.NumberFormat("tr-TR",{maximumFractionDigits:1}).format(v/1000)+"B":fmt0.format(v)}
+function grafikBagla(k){
+  const g=$(".grafik",k);if(!g)return;let ip=null;
+  const goster=t=>{if(!t||!t.classList.contains("vur"))return;if(!ip){ip=document.createElement("div");ip.className="ipucu";g.appendChild(ip)}
+    ip.textContent=`${t.dataset.g}: ${t.dataset.n}${t.dataset.s==="0"?" (sipariş yok)":""}`;
+    const b=t.getBoundingClientRect(),o=g.getBoundingClientRect();
+    ip.style.left=Math.max(70,Math.min(o.width-70,b.left-o.left+b.width/2))+"px";ip.style.top="26px"};
+  g.addEventListener("pointermove",ev=>goster(document.elementFromPoint(ev.clientX,ev.clientY)));
+  g.addEventListener("pointerdown",ev=>goster(ev.target));
+  g.addEventListener("pointerleave",()=>{if(ip){ip.remove();ip=null}});
+}
+/* ---------- Kontrol: Trendyol'un kestiği ile olması gereken ---------- */
+function kontrolBul(sat){
+  const c=[];
+  sat.forEach(r=>{
+    if(r.iade||!r.komGercek||r.k.komisyonOran==null)return;
+    const bek=r.brut*r.k.komisyonOran/100;
+    if(Math.abs(bek-r.komisyon)>1)c.push({r,tur:"Komisyon",bek,ger:r.komisyon,not:`Oran ${yuzde(r.k.komisyonOran)}`});
+  });
+  const pk=new Set();
+  sat.forEach(r=>{
+    const f=D.kargolar[r.k.siparisNo];if(!f||pk.has(r.k.siparisNo))return;pk.add(r.k.siparisNo);
+    const ud=r.u&&+r.u.desi;
+    if(ud&&f.desi&&f.desi>ud*r.adet)c.push({r,tur:"Desi",bek:ud*r.adet,ger:f.desi,not:"Faturadaki desi ürün desisinden büyük",adet:true});
+    const tarif=kargoTarife(r.brut,D.ayar);
+    if(D.ayar.onay.kargo&&f.gidis>tarif*1.2)c.push({r,tur:"Kargo",bek:tarif,ger:f.gidis,not:"Tarifenin %20'sinden fazla"});
+  });
+  return c;
+}
+function yaklasanOdeme(){
+  const su=Date.now();
+  return Object.entries(D.odemeler).map(([t,tutar])=>({t:+t,tutar})).filter(y=>y.t>=su-864e5).sort((a,b)=>a.t-b.t).slice(0,6);
+}
+/* ---------- Ürünler ---------- */
+function urunlerCiz(e){
+  const A=D.ayar;
+  const liste=Object.values(D.urunler);
+  const q=G.urunAra.toLocaleLowerCase("tr-TR");
+  const sat=liste.filter(u=>!q||(u.ad||"").toLocaleLowerCase("tr-TR").includes(q)||(u.sku||"").toLocaleLowerCase("tr-TR").includes(q)).map(u=>{const t=u.fiyat?fiyatTest(+u.fiyat,u,"Trendyol",A):null;return {u,t,var:maliyetVar(u)}});
+  sat.sort((a,b)=>(a.var-b.var)||((a.t?a.t.marj:0)-(b.t?b.t.marj:0)));
+  const eksik=liste.filter(u=>!maliyetVar(u)).length;
+  e.innerHTML=`
+  <section class="kart"><div class="satirbas"><h2>Ürünler</h2><span class="not">${liste.length} ürün${eksik?" · "+eksik+" maliyetsiz":""}</span></div>
+    <div class="alan"><label for="urunAra">Ara</label><input id="urunAra" type="search" value="${esc(G.urunAra)}" placeholder="Ad veya stok kodu"></div>
+    ${liste.length?`<p class="not">Marj, Trendyol'da şu anki fiyatla ve panel ayarlarınla hesaplanır. Ürüne dokunup gram ve baskı süresini gir.</p>`:`<p class="not">Henüz ürün yok. Veri sekmesinden Trendyol'u bağla ya da sipariş Excel'i yükle; ürünler otomatik gelir.</p>`}
+    <div class="liste" id="urunListe">${sat.map(({u,t,var:v})=>`<button class="oge" data-urun="${esc(u.sku)}"><span><span class="ad">${esc(u.ad||u.sku)}</span><br><span class="kod">${esc(u.sku)}</span></span>
+      <span class="sag">${u.fiyat?tl(+u.fiyat):"fiyat yok"}<small>${v&&t?`net ${tl(t.net)} · ${yuzde(t.marj)}`:""}</small>${v&&t?marjRozet(t.marj,A):'<span class="rozet gri">maliyet gir</span>'}</span></button>`).join("")}</div>
+  </section>`;
+  $("#urunAra").addEventListener("input",ev=>{G.urunAra=ev.target.value;const p=ev.target.selectionStart;urunlerCiz(e);const i=$("#urunAra");i.focus();i.setSelectionRange(p,p)});
+}
+function urunLevha(sku){
+  const u=D.urunler[sku];if(!u)return;
+  const A=D.ayar;
+  const alan=(id,et,v,tip="number",adim="any")=>`<div class="alan"><label for="${id}">${et}</label><input id="${id}" type="${tip}" inputmode="decimal" step="${adim}" value="${esc(v==null?"":v)}"></div>`;
+  $("#katman").innerHTML=`<div class="perde" id="perde"><div class="levha" role="dialog" aria-modal="true" aria-label="${esc(u.ad||u.sku)}">
+    <h2>${esc(u.ad||u.sku)}</h2><span class="kod mono not">${esc(u.sku)}${u.barkod?" · "+esc(u.barkod):""}</span>
+    <div class="alanlar">
+      ${alan("uGram","Gram (paket toplamı)",u.gram)}${alan("uSaat","Baskı süresi (saat)",u.saat)}${alan("uIsc","İşçilik (dakika)",u.iscilikDk)}${alan("uAmb","Ambalaj TL (boş: "+A.ambalaj+")",u.ambalaj)}
+      ${alan("uFiyat","Satış fiyatı (KDV dahil)",u.fiyat)}${alan("uKom","Komisyon %",u.komisyon)}${alan("uDesi","Desi",u.desi)}${alan("uEl","Elle toplam maliyet TL",u.elMaliyet)}
+    </div>
+    <p class="not">Elle maliyet girersen gram ve süre hesaba katılmaz.</p>
+    <div class="dokum" id="uSonuc"></div>
+    <div class="sira"><button class="btn" id="uKapat">Bitti</button><button class="btn ikinci" id="uFiyatGit">Fiyat sekmesinde aç</button></div>
+  </div></div>`;
+  const oku=()=>{const n=id=>{const v=$("#"+id).value;return v===""?null:+v};
+    u.gram=n("uGram");u.saat=n("uSaat");u.iscilikDk=n("uIsc");u.ambalaj=n("uAmb");u.fiyat=n("uFiyat");u.komisyon=n("uKom");u.desi=n("uDesi");u.elMaliyet=n("uEl");urunlerKaydet();sonuc()};
+  const sonuc=()=>{
+    const m=birimMaliyet(u,A);const f=+u.fiyat||0;
+    const t=f?fiyatTest(f,u,"Trendyol",A):null;const p=fiyatBul(+A.hedefMarj,u,"Trendyol",A);
+    $("#uSonuc").innerHTML=`<div class="s"><span>Filament (fire dahil)</span><span>${tl(m.fil)}</span></div><div class="s"><span>Makine</span><span>${tl(m.mak)}</span></div><div class="s"><span>İşçilik</span><span>${tl(m.isc)}</span></div><div class="s"><span>Ambalaj</span><span>${tl(m.amb)}</span></div><div class="s top"><span>Üretim maliyeti</span><span>${tl(m.toplam)}</span></div>
+    ${t?`<div class="s top"><span>Trendyol net kâr</span><span class="${t.net<0?"eksi":""}">${tl(t.net)} (${yuzde(t.marj)})</span></div>`:""}
+    ${p&&maliyetVar(u)?`<div class="s"><span>%${A.hedefMarj} marj için fiyat</span><span>${tl(p)}</span></div>`:""}`;
+  };
+  $("#katman").querySelectorAll("input").forEach(i=>i.addEventListener("input",oku));sonuc();
+  const kapat=()=>{$("#katman").innerHTML="";ciz()};
+  $("#uKapat").onclick=kapat;$("#perde").addEventListener("click",ev=>{if(ev.target.id==="perde")kapat()});
+  $("#uFiyatGit").onclick=()=>{G.fiyatSku=sku;G.fiyat=u.fiyat||"";G.fiyatKom="";G.sekme="fiyat";kapat()};
+}
+/* ---------- Fiyat ---------- */
+function fiyatCiz(e){
+  const A=D.ayar;
+  const liste=Object.values(D.urunler).sort((a,b)=>(a.ad||"").localeCompare(b.ad||"","tr"));
+  const ornek=!liste.length;
+  const u=D.urunler[G.fiyatSku]||(ornek?ORNEK_URUN["ORNEK-A"]:liste[0]);
+  if(!G.fiyatSku&&u){G.fiyatSku=u.sku}
+  if(G.fiyat===""&&u&&u.fiyat)G.fiyat=u.fiyat;
+  const f=+G.fiyat||0;
+  const kom=G.fiyatKom;
+  const t=f?fiyatTest(f,u,G.fiyatKanal,A,kom):null;
+  const hedef=G.hedefMarj===""?+A.hedefMarj:+G.hedefMarj;
+  const oner=fiyatBul(hedef,u,G.fiyatKanal,A,kom);
+  const satir=(a,v,c="")=>`<div class="s ${c}"><span>${a}</span><span>${v}</span></div>`;
+  const kosu=[5,10,15,20,30].map(d=>{const p=f*(1-d/100);const r=fiyatTest(p,u,G.fiyatKanal,A,kom);return {d,p,r}});
+  const kamp=+G.kampanya||0;const kr=kamp?fiyatTest(kamp,u,G.fiyatKanal,A,kom):null;
+  const karar=m=>m<0?'<span class="rozet bad">▼ Katılma</span>':m<+A.kritikMarj?'<span class="rozet warn">! Marj düşük</span>':'<span class="rozet ok">✓ Katılabilirsin</span>';
+  e.innerHTML=`
+  ${!maliyetVar(u)?`<div class="bant warn"><span><b>Bu üründe maliyet yok.</b> Sonuç üretim maliyetini içermiyor.</span><button class="btn kucuk" data-urun="${esc(u.sku)}">Maliyet gir</button></div>`:""}
+  <section class="kart"><h2>Fiyat hesapla</h2>
+    <div class="alanlar">
+      <div class="alan" style="grid-column:1/-1"><label for="fUrun">Ürün</label><select id="fUrun">${ornek?`<option>${esc(u.ad)}</option>`:liste.map(x=>`<option value="${esc(x.sku)}" ${x.sku===u.sku?"selected":""}>${esc(x.ad||x.sku)}</option>`).join("")}</select></div>
+      <div class="alan"><label for="fKanal">Kanal</label><select id="fKanal">${Object.keys(A.kanallar).map(k=>`<option ${k===G.fiyatKanal?"selected":""}>${esc(k)}</option>`).join("")}</select></div>
+      <div class="alan"><label for="fFiyat">Satış fiyatı TL</label><input id="fFiyat" type="number" inputmode="decimal" step="any" value="${esc(G.fiyat)}"></div>
+      <div class="alan"><label for="fKom">Komisyon % (boş: kayıtlı)</label><input id="fKom" type="number" inputmode="decimal" step="any" value="${esc(G.fiyatKom)}"></div>
+      <div class="alan"><label for="fHedef">Hedef net marj %</label><input id="fHedef" type="number" inputmode="decimal" step="any" value="${esc(hedef)}"></div>
+    </div>
+  </section>
+  <div class="iki">
+    <section class="kart"><div class="satirbas"><h2>Bu fiyatta</h2>${t?marjRozet(t.marj,A):""}</div>
+      ${t?`<div class="dokum">${satir("Satış (KDV dahil)",tl(t.brut))}${satir("Net KDV",dus(t.netKdv))}${satir("Komisyon",dus(t.komisyon))}${satir("Kargo",dus(t.kargo))}${satir("Hizmet bedeli",dus(t.hizmet))}${satir("Stopaj",dus(t.stopaj))}${satir("Üretim maliyeti",dus(t.uretim))}${satir("Net kâr",`<span class="${t.net<0?"eksi":""}">${tl(t.net)} · ${yuzde(t.marj)}</span>`,"top")}</div>`:'<p class="not">Fiyat gir.</p>'}
+      ${oner?`<div class="bant info"><span>%${esc(hedef)} net marj için en düşük fiyat <b class="mono">${tl(oner)}</b></span><button class="btn kucuk" id="fUygula">Bunu dene</button></div>`:'<p class="not">Bu marj için uygun fiyat yok. Komisyon ve vergilerin toplamı marjı aşıyor.</p>'}
+    </section>
+    <section class="kart"><h2>Kampanya teklifi çıktı mı?</h2>
+      <div class="alan"><label for="fKamp">Teklif edilen fiyat TL</label><input id="fKamp" type="number" inputmode="decimal" step="any" value="${esc(G.kampanya)}" placeholder="Örn. 199,99"></div>
+      ${kr?`<div class="bant info"><span>${tl(kamp)} fiyatta net <b class="mono ${kr.net<0?"eksi":""}">${tl(kr.net)}</b> (${yuzde(kr.marj)})</span>${karar(kr.marj)}</div>`:""}
+      ${f?`<div class="tablo-kap"><table><thead><tr><th>İndirim</th><th class="r">Fiyat</th><th class="r">Net</th><th>Karar</th></tr></thead><tbody>${kosu.map(k=>`<tr><td>%${k.d}</td><td class="r">${tl(k.p)}</td><td class="r ${k.r.net<0?"eksi":""}">${tl(k.r.net)}</td><td>${karar(k.r.marj)}</td></tr>`).join("")}</tbody></table></div>`:""}
+    </section>
+  </div>
+  <section class="kart"><h2>Kanal karşılaştırması</h2><p class="not">Aynı fiyatla her kanalda ne kalıyor. Oranlar Veri sekmesindeki ayarlardan gelir.</p>
+    ${f?`<div class="tablo-kap"><table><thead><tr><th>Kanal</th><th class="r">Kesinti</th><th class="r">Net kâr</th><th class="r">Marj</th></tr></thead><tbody>${Object.keys(A.kanallar).map(k=>{const r=fiyatTest(f,u,k,A);return `<tr><td>${esc(k)}</td><td class="r">${tl(r.komisyon+r.hizmet+r.kargo)}</td><td class="r ${r.net<0?"eksi":""}">${tl(r.net)}</td><td class="r">${yuzde(r.marj)}</td></tr>`}).join("")}</tbody></table></div>`:""}
+  </section>`;
+  const yeniden=(id)=>{const el=$("#"+id);const p=el.selectionStart;fiyatCiz(e);const n=$("#"+id);n.focus();try{n.setSelectionRange(p,p)}catch(x){}};
+  $("#fUrun").onchange=ev=>{G.fiyatSku=ev.target.value;const x=D.urunler[G.fiyatSku];G.fiyat=x&&x.fiyat||"";G.fiyatKom="";G.kampanya="";fiyatCiz(e)};
+  $("#fKanal").onchange=ev=>{G.fiyatKanal=ev.target.value;fiyatCiz(e)};
+  [["fFiyat","fiyat"],["fKom","fiyatKom"],["fHedef","hedefMarj"],["fKamp","kampanya"]].forEach(([id,a])=>$("#"+id).addEventListener("change",ev=>{G[a]=ev.target.value;yeniden(id)}));
+  const uy=$("#fUygula");if(uy)uy.onclick=()=>{G.fiyat=oner;fiyatCiz(e)};
+}
+/* ---------- Siparişler ---------- */
+function siparisCiz(e){
+  const {kalemler,urunler,ornek}=gorunen();const A=D.ayar;
+  const tum=satirlariHesapla(kalemler,urunler,A,D.kargolar);
+  const iptal=kalemler.filter(k=>k.durum==="iptal").length;
+  const kontrol=kontrolBul(tum);
+  const fl={tum:()=>true,zarar:r=>r.net<0,iade:r=>r.iade,eksik:r=>r.maliyetEksik};
+  const sat=G.sipFiltre==="kontrol"?[]:tum.filter(fl[G.sipFiltre]).slice(0,150);
+  const say=f=>tum.filter(fl[f]).length;
+  e.innerHTML=`${ornek?ornekBant():""}
+  <div class="cipler" role="group" aria-label="Filtre">${[["tum","Tümü",tum.length],["zarar","Zarar edenler",say("zarar")],["iade","İadeler",say("iade")],["eksik","Maliyetsiz",say("eksik")],["kontrol","Kesinti kontrolü",kontrol.length]].map(([f,a,n])=>`<button class="cip" data-sipf="${f}" aria-pressed="${G.sipFiltre===f}">${a} · ${n}</button>`).join("")}</div>
+  ${G.sipFiltre==="kontrol"?`<section class="kart"><h2>Kesinti kontrolü</h2><p class="not">Pazaryerinin kestiği ile hesaplanan farklıysa burada görünür. Komisyon ve desi kontrolü Trendyol bağlantısıyla çalışır. Fark görürsen satıcı panelinden itiraz edebilirsin.</p>
+    ${kontrol.length?`<div class="tablo-kap"><table><thead><tr><th>Sipariş</th><th>Tür</th><th class="r">Olması gereken</th><th class="r">Kesilen</th></tr></thead><tbody>${kontrol.map(c=>`<tr><td>${esc(c.r.k.siparisNo)}<br><span class="not">${esc(c.not)}</span></td><td>${c.tur}</td><td class="r">${c.adet?c.bek+" desi":tl(c.bek)}</td><td class="r eksi">${c.adet?c.ger+" desi":tl(c.ger)}</td></tr>`).join("")}</tbody></table></div>`:'<p class="not">Fark yok.</p>'}
+    ${Object.keys(D.hizmetFatura).length?`<h3>Faturalanan hizmet bedeli</h3><div class="dokum">${Object.entries(D.hizmetFatura).sort().reverse().map(([a,v])=>`<div class="s"><span>${esc(a)}</span><span>${tl(v)}</span></div>`).join("")}</div>`:""}</section>`:
+  `<section class="kart"><div class="satirbas"><h2>Siparişler</h2>${iptal?`<span class="not">${iptal} iptal hesaba katılmadı</span>`:""}</div>
+    <div class="liste">${sat.map((r,i)=>`<button class="oge" data-sat="${i}"><span><span class="ad">${esc(urunAd(r))}</span><br><span class="kod">${tarihYaz(r.k.tarih)} · ${esc(r.k.kanal)} · ${esc(r.k.siparisNo||r.k.paket)}${r.adet>1?" · "+r.adet+" adet":""}</span></span>
+    <span class="sag"><span class="${r.net<0?"eksi":""}">${tl(r.net)}</span><small>${tl(r.brut)}</small>${durumRozet(r)}</span></button>`).join("")||'<p class="not">Bu filtrede kayıt yok.</p>'}</div>
+    ${tum.filter(fl[G.sipFiltre]).length>150?'<p class="not">İlk 150 kayıt gösteriliyor.</p>':""}
+  </section>`}`;
+  e.querySelectorAll("[data-sat]").forEach(b=>b.onclick=()=>satirLevha(sat[+b.dataset.sat]));
+}
+function durumRozet(r){
+  if(r.iade)return '<span class="rozet bad">↩ İade</span>';
+  if(r.maliyetEksik)return '<span class="rozet warn">maliyet yok</span>';
+  if(r.k.durum==="yolda")return '<span class="rozet gri">Yolda</span>';
+  return r.net<0?'<span class="rozet bad">▼ Zarar</span>':'<span class="rozet ok">✓ Teslim</span>';
+}
+function satirLevha(r){
+  const s=(a,v,fl="",c="")=>`<div class="s ${c}"><span>${a}${fl}</span><span>${v}</span></div>`;
+  const G1='<span class="ger">GERÇEK</span>',T1='<span class="tah">TAHMİN</span>';
+  $("#katman").innerHTML=`<div class="perde" id="perde"><div class="levha" role="dialog" aria-modal="true" aria-label="Sipariş dökümü"><h2>${esc(urunAd(r))}</h2>
+   <span class="not">${tarihYaz(r.k.tarih)} · ${esc(r.k.kanal)} · Sipariş ${esc(r.k.siparisNo||"")} · ${r.adet} adet</span>
+   <div class="dokum">${s("Satış (KDV dahil)",tl(r.brut))}${s("Net KDV",dus(r.netKdv))}${s("Komisyon ("+yuzde(r.oran)+")",dus(r.komisyon),r.komGercek?G1:T1)}${s("Kargo",dus(r.kargo),r.kargoGercek?G1:T1)}${s("Hizmet bedeli",dus(r.hizmet),T1)}${s("Stopaj",dus(r.stopaj))}${s("Üretim maliyeti",dus(r.uretim),r.maliyetEksik?'<span class="tah">GİRİLMEDİ</span>':"")}${s("Net kâr",`<span class="${r.net<0?"eksi":""}">${tl(r.net)} · ${yuzde(r.marj)}</span>`,"","top")}</div>
+   <button class="btn" id="sKapat">Kapat</button></div></div>`;
+  const k=()=>{$("#katman").innerHTML=""};$("#sKapat").onclick=k;$("#perde").addEventListener("click",ev=>{if(ev.target.id==="perde")k()});
+}
+/* ---------- Trendyol köprüsü ---------- */
+const DURUM_TY={Delivered:"teslim",Cancelled:"iptal",UnSupplied:"iptal",Returned:"iade",UnDelivered:"iade"};
+async function kopru(yol,par){
+  const K=Depo.kopruAl();
+  const u=new URL(K.adres.replace(/\/+$/,"")+yol);
+  Object.entries(par||{}).forEach(([a,v])=>u.searchParams.set(a,v));
+  const c=await fetch(u.toString(),{headers:{"X-Erisim-Kodu":K.kod}});
+  if(c.status===401||c.status===403){const h=new Error(c.status===401?"Erişim kodu ya da Trendyol anahtarı yanlış.":"Trendyol isteği reddetti (403). Anahtarların yetkisini kontrol et.");h.yetki=true;throw h}
+  if(c.status===429)throw new Error("Trendyol kısa süreli sınır koydu. Bir dakika sonra tekrar dene.");
+  if(!c.ok){let m="";try{m=(await c.json()).hata||""}catch(e){}throw new Error(m||("Trendyol hata verdi: "+c.status))}
+  return c.json();
+}
+async function sayfaliCek(yol,par,boyut,dur){
+  const sonuc=[];let sayfa=0,top=1;
+  while(sayfa<top&&sayfa<50){
+    const c=await kopru(yol,{...par,page:sayfa,size:boyut});
+    (c.content||[]).forEach(x=>sonuc.push(x));
+    top=c.totalPages||1;sayfa++;if(dur)dur(sonuc.length);
+  }
+  return sonuc;
+}
+function tyKalem(p,l,i){
+  let brut=0;
+  const adet=+l.quantity||1;
+  if(l.discountDetails&&l.discountDetails.length){l.discountDetails.forEach(d=>{brut+=(+d.lineItemPrice||0)+(+d.lineItemTyDiscount||0)})}
+  else brut=((+l.lineUnitPrice||0)+(+l.lineTyDiscount||0))*adet;
+  return {id:"TY-"+p.shipmentPackageId+"-"+(l.lineId||i),kanal:"Trendyol",paket:String(p.shipmentPackageId),siparisNo:String(p.orderNumber||""),tarih:+p.orderDate,durum:DURUM_TY[p.status]||DURUM_TY[l.orderLineItemStatusName]||"yolda",sku:l.stockCode||l.barcode||"",barkod:l.barcode||"",ad:l.productName||"",adet,brut:Math.round(brut*100)/100,kdvOran:l.vatRate!=null?+l.vatRate:null,komisyonOran:l.commission!=null?+l.commission:null,desi:+p.cargoDeci||null,kaynak:"api"};
+}
+async function siparisAl(s,e,siparisPaket){
+  let n=0;
+  const pk=await sayfaliCek("/siparisler",{startDate:s,endDate:e,orderByField:"PackageLastModifiedDate",orderByDirection:"DESC"},200);
+  pk.forEach(p=>{
+    (siparisPaket[p.orderNumber]=siparisPaket[p.orderNumber]||new Set()).add(p.shipmentPackageId);
+    (p.lines||[]).forEach((l,i)=>{
+      const k=tyKalem(p,l,i);const es=D.kalemler[k.id];
+      D.kalemler[k.id]=es?{...es,...k,komisyonTL:es.komisyonTL}:k;n++;
+      const sku=k.sku;if(sku){const o=D.urunler[sku]||{sku,ad:k.ad,barkod:k.barkod};if(k.komisyonOran!=null)o.komisyon=k.komisyonOran;if(k.kdvOran!=null)o.kdv=k.kdvOran;D.urunler[sku]=o}
+    });
+  });
+  return n;
+}
+async function trendyolCek(gun,dur){
+  const su=Date.now();const bas=su-gun*864e5;const dilim=14*864e5;
+  const pencere=[];for(let s=bas;s<su;s+=dilim)pencere.push([s,Math.min(s+dilim,su)]);
+  dur("Ürünler alınıyor");
+  const urunler=await sayfaliCek("/urunler",{},100);
+  urunler.forEach(c=>(c.variants||[]).forEach(v=>{
+    const sku=v.stockCode||v.barcode;if(!sku)return;
+    const o=D.urunler[sku]||{sku};
+    o.ad=c.title||o.ad;o.barkod=v.barcode||o.barkod;o.kdv=v.vatRate!=null?+v.vatRate:o.kdv;
+    const fy=v.price&&v.price.salePrice;if(fy!=null)o.fiyat=+fy;
+    D.urunler[sku]=o;
+  }));
+  let n=0;
+  const siparisPaket={};
+  for(const [s,e] of pencere){
+    dur("Siparişler alınıyor ("+n+")");
+    n+=await siparisAl(s,e,siparisPaket);
+  }
+  /* Hakediş ya da kargo adımı hata verirse siparişler kaybolmasın */
+  await Depo.yaz("urunler",{u:D.urunler});
+  await kalemleriKaydet();
+  dur("Hakedişler alınıyor");
+  const kom=new Map();const odeme={};const gorulen=new Set();
+  for(const [s,e] of pencere){
+    const son=Math.min(e,s+15*864e5);
+    const k=await sayfaliCek("/hakedis",{transactionTypes:"Sale,Return",startDate:s,endDate:son},1000);
+    k.forEach(x=>{
+      if(x.id!=null){if(gorulen.has(x.id))return;gorulen.add(x.id)}
+      if(x.paymentDate&&x.sellerRevenue!=null){const g=new Date(+x.paymentDate);g.setHours(0,0,0,0);const a=g.getTime();odeme[a]=(odeme[a]||0)+(x.transactionType==="Return"?-1:1)*Math.abs(+x.sellerRevenue)}
+      if(x.transactionType!=="Sale"||!x.shipmentPackageId)return;
+      const a=x.shipmentPackageId+"|"+x.barcode;kom.set(a,(kom.get(a)||0)+Math.abs(+x.commissionAmount||0));
+    });
+  }
+  Object.assign(D.odemeler,odeme);
+  Object.values(D.kalemler).forEach(k=>{if(k.kanal==="Trendyol"){const a=k.paket+"|"+k.barkod;if(kom.has(a))k.komisyonTL=Math.round(kom.get(a)*100)/100}});
+  dur("Kargo faturaları alınıyor");
+  const hizmet={};const fatGorulen=new Set();
+  for(const [s,e] of pencere){
+    const fat=await sayfaliCek("/diger-finans",{transactionType:"DeductionInvoices",startDate:s,endDate:Math.min(e,s+15*864e5)},1000);
+    for(const f of fat){
+      if(f.id!=null){if(fatGorulen.has(f.id))continue;fatGorulen.add(f.id)}
+      const tur=String(f.transactionType||"");
+      if(/kargo\s*fatura/i.test(tur)&&f.id){
+        const satir=await sayfaliCek("/kargo-fatura/"+encodeURIComponent(f.id),{},500);
+        satir.forEach(c=>{
+          const o=D.kargolar[c.orderNumber]=D.kargolar[c.orderNumber]||{gidis:0,iade:0,desi:0,paket:1,fat:{}};
+          if(siparisPaket[c.orderNumber])o.paket=siparisPaket[c.orderNumber].size;
+          const anah=f.id+"|"+c.parcelUniqueId+"|"+c.shipmentPackageType;if(o.fat[anah])return;o.fat[anah]=1;
+          if(/iade/i.test(c.shipmentPackageType||""))o.iade+=+c.amount||0;else{o.gidis+=+c.amount||0;o.desi=Math.max(o.desi,+c.desi||0)}
+        });
+      }else if(/hizmet|platform/i.test(tur+" "+(f.description||""))){
+        const a=ayAnahtar(+f.transactionDate||s);hizmet[a]=(hizmet[a]||0)+Math.abs(+f.debt||+f.credit||0);
+      }
+    }
+  }
+  Object.assign(D.hizmetFatura,hizmet);
+  D.sonCekim=Date.now();
+  dur("Kaydediliyor");
+  await Depo.yaz("urunler",{u:D.urunler});
+  await kalemleriKaydet();
+  return n;
+}
+/* ---------- Otomatik yenileme: yalnız uygulama açık ve görünürken, köprü kuruluysa çalışır.
+   Son 3 günün siparişleri 5 dakikada bir, komisyon ve kargo faturası günde bir kez alınır.
+   Sadece ekler ve günceller; hata olursa eldeki veriye dokunmaz. */
+const OTO={son:0,calisiyor:null,durdu:false,hata:"",kismi:"",basari:0,tamDeneme:0};
+const OTO_ARALIK=5*6e4,OTO_DONUS=2*6e4,OTO_TAM=24*36e5,OTO_TAM_TEKRAR=36e5;
+function otoHazir(){const K=Depo.kopruAl();return !artifactte&&!!K.adres&&!!K.kod&&!OTO.durdu&&document.visibilityState==="visible"&&D.yuklendi}
+function imza(){return Object.values(D.kalemler).map(k=>k.id+"|"+k.durum+"|"+k.komisyonTL).sort().join(";")}
+function otoYenile(esik){
+  if(!otoHazir()||OTO.calisiyor||Date.now()-OTO.son<esik)return Promise.resolve(false);
+  OTO.son=Date.now();
+  const soz=(async()=>{
+    const once=imza();const eskiSayi=Object.keys(D.kalemler).length;
+    let tamOldu=false;
+    try{
+      const su=Date.now();
+      if(su-(D.sonCekim||0)>=OTO_TAM&&su-OTO.tamDeneme>=OTO_TAM_TEKRAR){
+        OTO.tamDeneme=su;
+        try{await trendyolCek(30,()=>{});tamOldu=true;OTO.kismi=""}
+        catch(x){if(x.yetki)throw x;OTO.kismi="Komisyon ve kargo faturası alınamadı: "+x.message}
+      }
+      if(!tamOldu){
+        await siparisAl(su-3*864e5,su,{});
+        if(imza()!==once){await Depo.yaz("urunler",{u:D.urunler});await kalemleriKaydet()}
+      }
+      OTO.hata="";OTO.basari=Date.now();
+    }catch(x){
+      OTO.hata=x.message||"Güncellenemedi";
+      if(x.yetki)OTO.durdu=true;
+    }
+    const yeni=Object.keys(D.kalemler).length-eskiSayi;
+    if(yeni>0)uyar(yeni+" yeni sipariş satırı geldi.");
+    if((tamOldu||imza()!==once)&&!$("#perde")&&(G.sekme==="ozet"||G.sekme==="siparis"))ciz();else etiketYaz();
+    return true;
+  })().finally(()=>{if(OTO.calisiyor===soz)OTO.calisiyor=null});
+  OTO.calisiyor=soz;
+  return soz;
+}
+/* ---------- Excel ---------- */
+const EX_ALAN=[
+ ["paket","Paket no",["paket no","paket numarası","paket numarasi","kargo kodu"]],
+ ["siparisNo","Sipariş no",["sipariş numarası","siparis numarasi","sipariş no","siparis no"]],
+ ["tarih","Sipariş tarihi",["sipariş tarihi","siparis tarihi","tarih"]],
+ ["durum","Durum",["sipariş statüsü","siparis statusu","sipariş durumu","siparis durumu","durum","statü"]],
+ ["sku","Stok kodu",["stok kodu","satıcı stok kodu","satici stok kodu","satıcı ürün kodu","merchant sku","sku"]],
+ ["barkod","Barkod",["barkod","barcode"]],
+ ["ad","Ürün adı",["ürün adı","urun adi","ürün"]],
+ ["adet","Adet",["adet","miktar"]],
+ ["brut","Satış tutarı (KDV dahil)",["faturalanacak tutar","satış tutarı","satis tutari","toplam tutar","tutar","fiyat"]],
+ ["komisyonOran","Komisyon %",["komisyon oranı","komisyon orani","komisyon %"]],
+ ["komisyonTL","Komisyon TL",["komisyon tutarı","komisyon tutari","komisyon"]],
+ ["kargoTL","Kargo TL",["kargo tutarı","kargo tutari","kargo ücreti","kargo ucreti"]],
+ ["desi","Desi",["faturalanmış kargo desi","kargo desi","desi"]]
+];
+let exDurum=null;
+function norm(s){return String(s==null?"":s).toLocaleLowerCase("tr-TR").replace(/\s+/g," ").trim()}
+function excelOku(dosya,cb){
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const wb=XLSX.read(new Uint8Array(r.result),{type:"array",cellDates:false});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const sat=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:""});
+    let bas=sat.findIndex(x=>x.filter(c=>c!=="").length>=3);if(bas<0)bas=0;
+    const bas2=sat.slice(bas,bas+6).findIndex(x=>x.some(c=>/sipariş|siparis|barkod|paket/i.test(String(c))));
+    if(bas2>0)bas+=bas2;
+    const baslik=sat[bas].map(String);
+    const eslesme={};
+    EX_ALAN.forEach(([a,,tak])=>{for(const t of tak){const i=baslik.findIndex(b=>norm(b)===t);if(i>=0){eslesme[a]=i;break}}});
+    cb({baslik,satirlar:sat.slice(bas+1).filter(x=>x.some(c=>c!=="")),eslesme});
+  }catch(e){uyar("Dosya okunamadı. .xlsx ya da .csv seç.")}};
+  r.readAsArrayBuffer(dosya);
+}
+function sayiOku(v){
+  if(typeof v==="number")return v;const s=String(v==null?"":v).replace(/[^\d,.\-]/g,"");if(!s)return null;
+  const t=s.lastIndexOf(","),n=s.lastIndexOf(".");
+  return parseFloat(t>n?s.replace(/\./g,"").replace(",","."):s.replace(/,/g,""));
+}
+function tarihOku(v){
+  if(typeof v==="number"&&v>20000&&v<80000)return Math.round((v-25569)*864e5+new Date().getTimezoneOffset()*6e4);
+  if(typeof v==="number")return v>1e11?v:NaN;
+  const s=String(v||"").trim();const m=s.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?:[ T](\d{1,2}):(\d{2}))?/);
+  if(m){const y=+m[3]<100?2000+ +m[3]:+m[3];return new Date(y,+m[2]-1,+m[1],+m[4]||0,+m[5]||0).getTime()}
+  const d=Date.parse(s);return isNaN(d)?NaN:d;
+}
+function durumOku(v){
+  const s=norm(v);
+  if(/iptal|cancel|tedarik edile/.test(s))return "iptal";
+  if(/iade|return|teslim edilemedi|undeliver/.test(s))return "iade";
+  if(/teslim|deliver|tamamlan/.test(s))return "teslim";
+  return "yolda";
+}
+function excelCevir(ex,kanal){
+  const al=(s,a)=>ex.eslesme[a]!=null?s[ex.eslesme[a]]:"";
+  const c=[];let atla=0;
+  ex.satirlar.forEach((s,i)=>{
+    const tarih=tarihOku(al(s,"tarih"));const brut=sayiOku(al(s,"brut"));
+    if(isNaN(tarih)||brut==null||isNaN(brut)){atla++;return}
+    const pk=String(al(s,"paket")||al(s,"siparisNo")||("x"+i));const sku=String(al(s,"sku")||al(s,"barkod")||"").trim();
+    const kor=sayiOku(al(s,"komisyonOran"));const ktl=sayiOku(al(s,"komisyonTL"));const kgo=sayiOku(al(s,"kargoTL"));
+    c.push({id:kanal.slice(0,2).toUpperCase()+"-"+pk+"-"+(sku||i),kanal,paket:pk,siparisNo:String(al(s,"siparisNo")||pk),tarih,durum:durumOku(al(s,"durum")),sku,barkod:String(al(s,"barkod")||""),ad:String(al(s,"ad")||""),adet:sayiOku(al(s,"adet"))||1,brut,komisyonOran:kor!=null&&!isNaN(kor)?kor:null,komisyonTL:ktl!=null&&!isNaN(ktl)?Math.abs(ktl):null,kargoTL:kgo!=null&&!isNaN(kgo)?Math.abs(kgo):null,desi:sayiOku(al(s,"desi")),kaynak:"excel"});
+  });
+  return {c,atla};
+}
+/* ---------- Veri sekmesi ---------- */
+function veriCiz(e){
+  const A=D.ayar;const K=Depo.kopruAl();
+  const n=Object.keys(D.kalemler).length;
+  const kargoS=A.kargo.map((b,i)=>`<div class="alan"><label for="kg${i}">${+b.ust>0?(i?A.kargo[i-1].ust+"-":"0-")+b.ust+" TL sipariş":A.kargo[i-1].ust+" TL ve üstü"}</label><input id="kg${i}" data-kg="${i}" type="number" inputmode="decimal" step="any" value="${esc(b.tl)}"></div>`).join("");
+  const kanal=Object.entries(A.kanallar).map(([k,v])=>`<tr><td>${esc(k)}</td>${["komisyon","sabit","hizmet"].map(a=>`<td><input aria-label="${esc(k)} ${a}" data-kn="${esc(k)}" data-ka="${a}" type="number" inputmode="decimal" step="any" value="${esc(v[a])}" style="width:74px;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:6px;font-size:16px"></td>`).join("")}</tr>`).join("");
+  const sayi=(id,et,v)=>`<div class="alan"><label for="${id}">${et}</label><input id="${id}" data-ayar="${id}" type="number" inputmode="decimal" step="any" value="${esc(v)}"></div>`;
+  e.innerHTML=`
+  <section class="kart"><div class="satirbas"><h2>Trendyol bağlantısı</h2>${K.adres&&K.kod?'<span class="rozet ok">✓ Kurulu</span>':'<span class="rozet gri">Kurulmadı</span>'}</div>
+  ${artifactte?`<div class="bant info"><span>Otomatik çekim, telefondaki sürümde çalışır: <b class="mono">arayxtech-afk.github.io/kar.html</b>. Burada Excel yükleyebilirsin.</span></div>`:`
+    <p class="not">Bağlantı yalnız okur; fiyat, stok ya da sipariş değiştiremez. Trendyol anahtarların Cloudflare'da durur, bu sayfaya girmez. Müşteri adı, adres ve telefonu köprüde silinir, buraya hiç gelmez.</p>
+    <details ${K.adres?"":"open"}><summary>Kurulum (bir kerelik)</summary>
+      <ol class="adim" style="margin-top:8px">
+        <li><span>Cloudflare'da <b>Workers &amp; Pages → Create → Start with Hello World</b>. Adını <span class="mono">arayx-kar</span> koy, Deploy et.</span></li>
+        <li><span><b>Edit code</b>'a gir, içindekini sil, köprü kodunu yapıştır, Deploy et.${window.KOPRU_KODU?`<br><button class="btn kucuk ikinci" id="kopruKopya" style="margin-top:6px">Köprü kodunu kopyala</button><textarea id="kopruMetin" aria-label="Köprü kodu" rows="4" readonly hidden style="width:100%;margin-top:6px;font-size:16px"></textarea>`:""}</span></li>
+        <li><span>Trendyol satıcı panelinde <b>Hesap Bilgilerim → Entegrasyon Bilgileri</b>'nden API Key ve Secret'ı al.</span></li>
+        <li><span>Worker'ın <b>Settings → Variables and Secrets</b> bölümüne Secret olarak ekle: <span class="mono">TRENDYOL_SATICI_ID</span>, <span class="mono">TRENDYOL_API_KEY</span>, <span class="mono">TRENDYOL_API_SECRET</span>, <span class="mono">ERISIM_KODU</span>.</span></li>
+        <li><span>Erişim kodunu buradan üret, kopyala, Cloudflare'a da aynısını yapıştır:</span></li>
+      </ol>
+      <div class="sira" style="margin-top:8px"><button class="btn kucuk ikinci" id="kodUret">Kod üret</button><span class="kopya" id="kodGoster" hidden></span></div>
+    </details>
+    <div class="alanlar">
+      <div class="alan"><label for="kAdres">Worker adresi</label><input id="kAdres" type="url" placeholder="https://arayx-kar.….workers.dev" value="${esc(K.adres||"")}"></div>
+      <div class="alan"><label for="kKod">Erişim kodu</label><input id="kKod" type="password" autocomplete="off" value="${esc(K.kod||"")}"></div>
+    </div>
+    <div class="sira"><button class="btn" id="kCek" ${K.adres&&K.kod?"":"disabled"}>Son 30 günü çek</button><button class="btn ikinci" id="kTest" ${K.adres&&K.kod?"":"disabled"}>Bağlantıyı dene</button><span class="not" id="kDurum" role="status">${esc(OTO.hata||OTO.kismi||(D.sonCekim?"Son tam çekim: "+tarihYaz(D.sonCekim):""))}</span></div>
+    <p class="not">Uygulama açıkken siparişler 5 dakikada bir kendiliğinden yenilenir, komisyon ve kargo faturası günde bir kez alınır. Uygulama kapalıyken yenilenmez. Trendyol geçmiş siparişleri yaklaşık 1 ay tuttuğu için ayda en az bir kez aç, eski kayıtlar burada kalır.</p>`}
+  </section>
+  <section class="kart"><h2>Excel'den sipariş yükle</h2><p class="not">Trendyol, Hepsiburada ya da N11 panelinden indirdiğin sipariş dosyası. Alıcı adı ve adres okunmaz, kaydedilmez. Aynı dosyayı iki kez yüklersen çift saymaz.</p>
+    <div class="alanlar"><div class="alan"><label for="exKanal">Kanal</label><select id="exKanal">${Object.keys(A.kanallar).map(k=>`<option>${esc(k)}</option>`).join("")}</select></div>
+    <div class="alan"><label for="exDosya">Dosya</label><input id="exDosya" type="file" accept=".xlsx,.xls,.csv"></div></div>
+    <div id="exEsle"></div>
+  </section>
+  <section class="kart" id="ayarlar"><h2>Hesap ayarları</h2>
+    <h3>Üretim maliyeti</h3>
+    <div class="alanlar">${sayi("filamentKg","Filament TL/kg",A.filamentKg)}${sayi("fire","Fire %",A.fire)}${sayi("makineSaat","Makine TL/saat",A.makineSaat)}${sayi("iscilikSaat","İşçilik TL/saat",A.iscilikSaat)}${sayi("ambalaj","Ambalaj TL",A.ambalaj)}</div>
+    <label class="onay"><input type="checkbox" data-onay="uretim" ${A.onay.uretim?"checked":""}><span>Bu rakamlar benim gerçek maliyetlerim</span></label>
+    <h3>Kargo (KDV dahil, panelindeki tarife)</h3>
+    <div class="alanlar">${kargoS}${sayi("iadeKargo","İade kargosu TL",A.iadeKargo)}</div>
+    <p class="not">Trendyol bağlıyken gerçek kargo faturası bunların yerine geçer. Başlangıçtaki 80 TL örnektir.</p>
+    <label class="onay"><input type="checkbox" data-onay="kargo" ${A.onay.kargo?"checked":""}><span>Tarifemi panelden kontrol ettim</span></label>
+    <h3>Kanal kesintileri</h3>
+    <div class="tablo-kap"><table><thead><tr><th>Kanal</th><th>Komisyon %</th><th>Sabit TL</th><th>Hizmet TL/paket</th></tr></thead><tbody>${kanal}</tbody></table></div>
+    <p class="not">Trendyol'da gerçek komisyon her siparişten okunur. Başlangıç oranları örnektir, hizmet bedeli 0 girilidir.</p>
+    <label class="onay"><input type="checkbox" data-onay="komisyon" ${A.onay.komisyon?"checked":""}><span>Komisyon ve hizmet bedelimi panelden kontrol ettim</span></label>
+    <h3>Vergi ve hedef</h3>
+    <div class="alanlar">${sayi("kdv","Satış KDV %",A.kdv)}${sayi("stopajOran","Stopaj %",A.stopajOran)}${sayi("hedefMarj","Hedef net marj %",A.hedefMarj)}${sayi("kritikMarj","Uyarı marjı %",A.kritikMarj)}</div>
+    <label class="onay"><input type="checkbox" data-sec="kdvMahsup" ${A.kdvMahsup?"checked":""}><span>Giderlerin KDV'sini mahsup ediyorum (net KDV). KDV mükellefi değilsen kapat.</span></label>
+    <label class="onay"><input type="checkbox" data-sec="stopajGider" ${A.stopajGider?"checked":""}><span>Stopajı gider say. Yıl sonu vergiden düşülebildiği için kapatmak isteyebilirsin; muhasebecine sor.</span></label>
+    <label class="onay"><input type="checkbox" data-sec="iadeParcaKayip" ${A.iadeParcaKayip?"checked":""}><span>İade gelen parçayı tekrar satamıyorum (maliyeti zarar yazılır)</span></label>
+  </section>
+  <section class="kart"><h2>Yedek</h2><p class="not">${n} sipariş satırı, ${Object.keys(D.urunler).length} ürün kayıtlı.</p>
+    <div class="sira"><button class="btn ikinci" id="yedekAl">Yedeği indir</button><label class="btn ikinci" for="yedekDosya" style="display:inline-flex;align-items:center">Yedekten yükle</label><input id="yedekDosya" type="file" accept=".json" hidden></div>
+    <div class="sira" id="silKutu"><button class="btn tehlike" id="silBas">Siparişleri sil</button></div>
+  </section>`;
+  veriBagla(e);
+}
+function veriBagla(e){
+  const A=D.ayar;
+  e.querySelectorAll("[data-ayar]").forEach(i=>i.addEventListener("input",()=>{A[i.dataset.ayar]=+i.value;ayarKaydet()}));
+  e.querySelectorAll("[data-kg]").forEach(i=>i.addEventListener("input",()=>{A.kargo[+i.dataset.kg].tl=+i.value;ayarKaydet()}));
+  e.querySelectorAll("[data-kn]").forEach(i=>i.addEventListener("input",()=>{A.kanallar[i.dataset.kn][i.dataset.ka]=+i.value;ayarKaydet()}));
+  e.querySelectorAll("[data-onay]").forEach(i=>i.addEventListener("change",()=>{A.onay[i.dataset.onay]=i.checked;ayarKaydet()}));
+  e.querySelectorAll("[data-sec]").forEach(i=>i.addEventListener("change",()=>{A[i.dataset.sec]=i.checked;ayarKaydet()}));
+  const kU=$("#kodUret");if(kU)kU.onclick=()=>{const b=new Uint8Array(24);crypto.getRandomValues(b);const k=[...b].map(x=>x.toString(16).padStart(2,"0")).join("");const g=$("#kodGoster");g.hidden=false;g.textContent=k;$("#kKod").value=k;Depo.kopruYaz({...Depo.kopruAl(),kod:k});if(navigator.clipboard)navigator.clipboard.writeText(k).then(()=>uyar("Kod kopyalandı. Cloudflare'a yapıştır."),()=>{})};
+  const kP=$("#kopruKopya");if(kP)kP.onclick=()=>{const goster=()=>{const t=$("#kopruMetin");t.hidden=false;t.value=window.KOPRU_KODU;t.focus();t.select();uyar("Kopyalanamadı. Kutudaki kodu seçip elle kopyala.")};if(navigator.clipboard)navigator.clipboard.writeText(window.KOPRU_KODU).then(()=>uyar("Köprü kodu kopyalandı. Cloudflare'a yapıştır."),goster);else goster()};
+  const kA=$("#kAdres"),kK=$("#kKod");
+  const kopruGuncelle=()=>{Depo.kopruYaz({adres:kA.value.trim(),kod:kK.value.trim()});OTO.durdu=false;const h=kA.value.trim()&&kK.value.trim();$("#kCek").disabled=!h;$("#kTest").disabled=!h};
+  if(kA){kA.addEventListener("input",kopruGuncelle);kK.addEventListener("input",kopruGuncelle)}
+  const kT=$("#kTest");if(kT)kT.onclick=async()=>{const d=$("#kDurum");d.textContent="Deneniyor";try{await kopru("/durum");const c=await kopru("/urunler",{page:0,size:1});OTO.durdu=false;OTO.hata="";d.textContent="Bağlantı çalışıyor. Mağazada "+(c.totalElements??"?")+" ürün görünüyor."}catch(x){d.textContent=x.message==="Failed to fetch"?"Worker'a ulaşılamadı. Adresi kontrol et.":x.message}};
+  const kC=$("#kCek");if(kC)kC.onclick=async()=>{
+    const d=$("#kDurum");kC.disabled=true;
+    const onceki=OTO.calisiyor;
+    const soz=(async()=>{if(onceki)await onceki;return trendyolCek(30,m=>{d.textContent=m})})();
+    OTO.calisiyor=soz;
+    try{const n=await soz;OTO.durdu=false;OTO.hata="";OTO.kismi="";OTO.basari=Date.now();uyar(n+" sipariş satırı alındı.");G.sekme="ozet";ciz()}
+    catch(x){d.textContent=x.message==="Failed to fetch"?"Worker'a ulaşılamadı. Adresi kontrol et.":x.message}
+    finally{if(OTO.calisiyor===soz)OTO.calisiyor=null;OTO.son=Date.now();const b=$("#kCek");if(b)b.disabled=false}
+  };
+  $("#exDosya").addEventListener("change",ev=>{const f=ev.target.files[0];if(!f)return;if(typeof XLSX==="undefined"){uyar("Excel okuyucu yüklenemedi. İnternetini kontrol edip sayfayı yenile.");return}excelOku(f,ex=>{exDurum=ex;excelEsleCiz()})});
+  $("#yedekAl").onclick=yedekAl;
+  $("#yedekDosya").addEventListener("change",yedekYukle);
+  $("#silBas").onclick=()=>{$("#silKutu").innerHTML=`<span class="not">${Object.keys(D.kalemler).length} sipariş satırı silinecek. Ürünler ve maliyetler kalır.</span><button class="btn tehlike" id="silEvet">Evet, sil</button><button class="btn ikinci" id="silVaz">Vazgeç</button>`;
+    $("#silVaz").onclick=()=>ciz();
+    $("#silEvet").onclick=async()=>{const h=await Depo.hepsi();for(const a of Object.keys(h))if(a.startsWith("kalem_"))await Depo.sil(a);await Depo.sil("finans");D.kalemler={};D.kargolar={};D.odemeler={};D.hizmetFatura={};D.sonCekim=null;uyar("Siparişler silindi.");ciz()}};
+}
+function excelEsleCiz(){
+  const ex=exDurum;const k=$("#exEsle");
+  const zor=["tarih","brut"];const secim=EX_ALAN.map(([a,et])=>`<div class="alan"><label for="eş${a}">${et}${zor.includes(a)?" *":""}</label><select id="eş${a}" data-es="${a}"><option value="">Yok</option>${ex.baslik.map((b,i)=>`<option value="${i}" ${ex.eslesme[a]===i?"selected":""}>${esc(b)}</option>`).join("")}</select></div>`).join("");
+  k.innerHTML=`<p class="not" style="margin-block:8px"><b>${ex.satirlar.length} satır</b> bulundu. Sütunlar doğru eşleşmiş mi kontrol et.</p><div class="alanlar">${secim}</div><div class="sira" style="margin-top:10px"><button class="btn" id="exAl">Siparişleri ekle</button><span class="not" id="exOn"></span></div>`;
+  k.querySelectorAll("[data-es]").forEach(s=>s.onchange=()=>{const v=s.value;if(v==="")delete ex.eslesme[s.dataset.es];else ex.eslesme[s.dataset.es]=+v;onizle()});
+  const onizle=()=>{const {c,atla}=excelCevir(ex,$("#exKanal").value);const t=c.reduce((a,b)=>a+(b.durum==="iptal"?0:b.brut),0);$("#exOn").textContent=`${c.length} satır okunacak, toplam ${tl(t)}${atla?`, ${atla} satır atlanacak (tarih ya da tutar okunamadı)`:""}.`};
+  onizle();
+  $("#exAl").onclick=async()=>{
+    const {c}=excelCevir(ex,$("#exKanal").value);
+    if(!c.length){uyar("Okunacak satır yok. Tarih ve tutar sütununu seç.");return}
+    c.forEach(k=>{D.kalemler[k.id]=k;if(k.sku){const o=D.urunler[k.sku]||{sku:k.sku,ad:k.ad,barkod:k.barkod};if(k.komisyonOran!=null&&k.kanal==="Trendyol")o.komisyon=k.komisyonOran;if(!o.fiyat&&k.adet)o.fiyat=Math.round(k.brut/k.adet*100)/100;D.urunler[k.sku]=o}});
+    await Depo.yaz("urunler",{u:D.urunler});await kalemleriKaydet();exDurum=null;uyar(c.length+" satır eklendi.");G.sekme="ozet";ciz();
+  };
+}
+async function yedekAl(){
+  const veri=JSON.stringify({uyg:"arayx-kar-paneli",tarih:Date.now(),ayar:D.ayar,urunler:D.urunler,kalemler:Object.values(D.kalemler),kargolar:D.kargolar,odemeler:D.odemeler,hizmetFatura:D.hizmetFatura,sonCekim:D.sonCekim});
+  const ad="arayx-kar-yedek-"+new Date().toISOString().slice(0,10)+".json";
+  if(artifactte){
+    let dl=null;try{dl=await window.claude.use("downloads")}catch(e){}
+    if(dl){try{await dl.save({filename:ad,data:veri});return}catch(e){return}}
+    uyar("Bu görünümde dosya indirilemiyor.");return;
+  }
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([veri],{type:"application/json"}));a.download=ad;document.body.appendChild(a);a.click();a.remove();
+}
+function yedekYukle(ev){
+  const f=ev.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=async()=>{try{
+    const v=JSON.parse(r.result);if(v.uyg!=="arayx-kar-paneli")throw 0;
+    D.ayar=birlestirAyar(v.ayar||{});D.urunler=v.urunler||{};D.kalemler={};(v.kalemler||[]).forEach(k=>{D.kalemler[k.id]=k});D.kargolar=v.kargolar||{};D.odemeler=v.odemeler||{};D.hizmetFatura=v.hizmetFatura||{};D.sonCekim=v.sonCekim||null;
+    await Depo.yaz("ayarlar",D.ayar);await Depo.yaz("urunler",{u:D.urunler});await kalemleriKaydet();uyar("Yedek yüklendi.");ciz();
+  }catch(e){uyar("Bu dosya Kâr Paneli yedeği değil.")}};
+  r.readAsText(f);
+}
+/* ---------- Olay yönlendirme ---------- */
+document.addEventListener("click",ev=>{
+  const t=ev.target.closest("[data-sekme],[data-git],[data-donem],[data-kanal],[data-urun],[data-sipf]");if(!t)return;
+  if(t.dataset.sekme){G.sekme=t.dataset.sekme;ciz();scrollTo(0,0)}
+  else if(t.dataset.git){G.sekme=t.dataset.git;ciz();const h=t.dataset.odak&&document.getElementById(t.dataset.odak);if(h)h.scrollIntoView();else scrollTo(0,0)}
+  else if(t.dataset.donem){G.donem=t.dataset.donem;ciz()}
+  else if(t.dataset.kanal){G.kanal=t.dataset.kanal;ciz()}
+  else if(t.dataset.urun){if(D.urunler[t.dataset.urun])urunLevha(t.dataset.urun);else uyar("Örnek ürün değiştirilemez. Önce ürünlerini yükle.")}
+  else if(t.dataset.sipf){G.sipFiltre=t.dataset.sipf;G.sekme="siparis";ciz()}
+});
+document.addEventListener("keydown",ev=>{if(ev.key==="Escape"&&$("#perde")){$("#katman").innerHTML="";ciz()}});
+ciz();
+yukle().then(()=>otoYenile(0));
+setInterval(()=>otoYenile(OTO_ARALIK),6e4);
+document.addEventListener("visibilitychange",()=>otoYenile(OTO_DONUS));
+</script>
+
+</body></html>
