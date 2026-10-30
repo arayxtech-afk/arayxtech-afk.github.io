@@ -206,7 +206,9 @@ function netHesap({brut,kdv,komisyon,kargo,hizmet,uretim,uretimKdvli},A){
   const stopaj=A.stopajGider?(brut/(1+k))*(+A.stopajOran||0)/100:0;
   const net=brut-komisyon-kargo-hizmet-uretim-netKdv-stopaj;
   const kdvHaric=brut/(1+k);
-  return {brut,komisyon,kargo,hizmet,uretim,netKdv,stopaj,net,marj:kdvHaric>0?net/kdvHaric*100:0,kdvHaric};
+  const stopajTL=(brut/(1+k))*(+A.stopajOran||0)/100;
+  const kalan=brut-komisyon-kargo-hizmet-stopajTL;
+  return {brut,komisyon,kargo,hizmet,uretim,netKdv,stopaj,net,marj:kdvHaric>0?net/kdvHaric*100:0,kdvHaric,stopajTL,kalan};
 }
 function fiyatTest(fiyat,u,kanal,A,komOran){
   const K=A.kanallar[kanal]||{komisyon:0,sabit:0,hizmet:0};
@@ -261,9 +263,9 @@ function satirlariHesapla(kalemler,urunler,A,kargolar){
   return sonuc.sort((a,b)=>b.k.tarih-a.k.tarih);
 }
 function topla(s){
-  const t={brut:0,kdvHaric:0,netKdv:0,komisyon:0,kargo:0,hizmet:0,stopaj:0,uretim:0,net:0,adet:0,iade:0};
+  const t={brut:0,kdvHaric:0,netKdv:0,komisyon:0,kargo:0,hizmet:0,stopaj:0,uretim:0,net:0,stopajTL:0,kalan:0,adet:0,iade:0};
   const pk=new Set();
-  for(const r of s){for(const a of ["brut","kdvHaric","netKdv","komisyon","kargo","hizmet","stopaj","uretim","net"])t[a]+=r[a];if(!r.iade)t.adet+=r.adet;else t.iade++;pk.add(paketKey(r.k))}
+  for(const r of s){for(const a of ["brut","kdvHaric","netKdv","komisyon","kargo","hizmet","stopaj","uretim","net","stopajTL","kalan"])t[a]+=r[a];if(!r.iade)t.adet+=r.adet;else t.iade++;pk.add(paketKey(r.k))}
   t.paket=pk.size;t.marj=t.kdvHaric>0?t.net/t.kdvHaric*100:0;return t;
 }
 /* ---------- Veri deposu: Claude'da db, telefonda localStorage ---------- */
@@ -366,8 +368,8 @@ function urunAd(r){return temizAd(r.k.ad)||(r.u&&r.u.ad)||r.k.sku||r.k.barkod||"
 /* ---------- Sekmeler ---------- */
 const SEKME=[
  ["ozet","Özet",'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
- ["urunler","Ürünler",'<path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8"/>'],
- ["fiyat","Hesapla",'<path d="M20 12l-8 8-9-9V3h8zM7.5 7.5h.01"/>']];
+ ["siparis","Siparişler",'<path d="M4 6h16M4 12h16M4 18h10"/>'],
+ ["urunler","Ürünler",'<path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8"/>']];
 function sekmeCiz(){
   $("#sekmeler").innerHTML=SEKME.map(([id,ad,ik])=>`<button class="sekme" data-sekme="${id}" ${G.sekme===id?'aria-current="page"':""}><svg viewBox="0 0 24 24" aria-hidden="true">${ik}</svg>${ad}</button>`).join("");
 }
@@ -382,14 +384,10 @@ function ciz(){
   sekmeCiz();
   etiketYaz();
   const e=$("#ekran");
-  ({ozet:ozetCiz,urunler:urunlerCiz,fiyat:fiyatCiz,siparis:siparisCiz,veri:veriCiz})[G.sekme](e);
+  ({ozet:ozetCiz,urunler:urunlerCiz,siparis:siparisCiz,veri:veriCiz})[G.sekme](e);
 }
 function ornekBant(){return `<div class="bant warn"><span><b>Örnek rakamlar.</b> Bunlar senin satışların değil.</span><button class="btn kucuk" data-git="veri">Mağazamı bağla</button></div>`}
 function geri(){return `<button class="geri" data-sekme="ozet">← Özet</button>`}
-function teyitBant(A){
-  const eksik=[];if(!A.onay.uretim)eksik.push("üretim maliyeti");if(!A.onay.kargo)eksik.push("kargo tarifesi");if(!A.onay.komisyon)eksik.push("komisyon ve hizmet bedeli");
-  return eksik.length?`<div class="bant warn"><span><b>Teyit bekliyor:</b> ${eksik.join(", ")} şimdilik örnek değerle hesaplanıyor.</span><button class="btn kucuk ikinci" data-git="veri" data-odak="ayarlar">Ayarlara git</button></div>`:"";
-}
 /* ---------- Özet ---------- */
 function ozetCiz(e){
   const {kalemler,urunler,ornek}=gorunen();const A=D.ayar;
@@ -399,78 +397,34 @@ function ozetCiz(e){
   const on=hepsi.filter(r=>r.k.tarih>=ar.os&&r.k.tarih<ar.oe);
   const t=topla(s),to=topla(on);
   const kanallar=["Hepsi",...new Set(kalemler.map(k=>k.kanal))];
-  const maks=Math.max(t.brut,Math.abs(t.net),1);
-  const kopru=[["Satış",t.brut,"ciro"],["Pazaryeri kesintisi",-(t.komisyon+t.hizmet),""],["Kargo",-t.kargo,""],["Vergi",-(t.netKdv+t.stopaj),""],["Üretim",-t.uretim,""]];
+  const maks=Math.max(t.brut,Math.abs(t.kalan),1);
+  const kopru=[["Satış",t.brut,"ciro"],["Komisyon",-t.komisyon,""],["Kargo",-t.kargo,""],["Hizmet bedeli",-t.hizmet,""],["Stopaj",-t.stopajTL,""]].filter(([a,v])=>a!=="Hizmet bedeli"||v);
   const urunMap={};
-  s.forEach(r=>{const a=r.k.barkod||r.k.sku;const m=urunMap[a]=urunMap[a]||{ad:urunAd(r),adet:0,net:0,brut:0,sku:a,eksik:r.maliyetEksik,kdvHaric:0};m.adet+=r.adet;m.net+=r.net;m.brut+=r.brut;m.kdvHaric+=r.kdvHaric});
-  const urunListe=Object.values(urunMap).sort((a,b)=>b.net-a.net);
-  const zarar=urunListe.filter(u=>u.net<0);
-  const eksikMal=new Set(s.filter(r=>r.maliyetEksik).map(r=>r.k.barkod||r.k.sku));
-  const tahminiKargo=s.filter(r=>!r.kargoGercek).length;
-  const dik=[];
-  if(zarar.length)dik.push(["bad","▼",`<b>Zarar edenler:</b> ${zarar.slice(0,5).map(u=>esc(u.ad)+" ("+tl0(u.net)+")").join(", ")}`]);
-  if(eksikMal.size)dik.push(["warn","!",`${eksikMal.size} üründe maliyet yok, gerçek kâr biraz daha az.`]);
+  s.forEach(r=>{const a=r.k.barkod||r.k.sku;const m=urunMap[a]=urunMap[a]||{ad:urunAd(r),adet:0,kalan:0};m.adet+=r.adet;m.kalan+=r.kalan});
+  const urunListe=Object.values(urunMap).sort((a,b)=>b.kalan-a.kalan);
+  const tahmin=s.filter(r=>!r.kargoGercek&&!r.iade).length;
   const kontrol=kontrolBul(s);
-  if(kontrol.length)dik.push(["bad","⚑",`Trendyol ${kontrol.length} siparişte fazla kesmiş olabilir. <button class="btn kucuk ikinci" data-sipf="kontrol">Gör</button>`]);
-  if(!dik.length&&s.length)dik.push(["ok","✓","Zarar eden ürün yok."]);
   const yaklasan=yaklasanOdeme();
   e.innerHTML=`
   ${ornek?ornekBant():""}
   <div class="cipler" role="group" aria-label="Dönem">${[["buay","Bu ay"],["gecenay","Geçen ay"]].map(([d,a])=>`<button class="cip" data-donem="${d}" aria-pressed="${G.donem===d}">${a}</button>`).join("")}</div>
   ${kanallar.length>2?`<div class="cipler" role="group" aria-label="Kanal">${kanallar.map(k=>`<button class="cip" data-kanal="${esc(k)}" aria-pressed="${G.kanal===k}">${esc(k)}</button>`).join("")}</div>`:""}
   <section class="hero">
-    <span class="ad">CEBİNE KALAN · ${esc(ar.ad).toLocaleUpperCase("tr-TR")}</span>
-    <div class="deger">${tl0(t.net)}</div>
+    <span class="ad">KESİNTİLERDEN SONRA KALAN · ${esc(ar.ad).toLocaleUpperCase("tr-TR")}</span>
+    <div class="deger">${tl0(t.kalan)}</div>
     <p class="cumle">${fmt0.format(t.paket)} siparişten ${tl0(t.brut)} satış yaptın.</p>
   </section>
-  ${dik.length?`<section class="kart"><div class="dikkat">${dik.map(([c,i,m])=>`<div class="d ${c}"><span aria-hidden="true">${i}</span><span>${m}</span></div>`).join("")}</div></section>`:""}
-  <section class="kart"><h2>En çok kazandıranlar</h2>${urunTablo(urunListe.slice(0,5))}</section>
-  <section class="kart"><h2>Paran nereye gitti</h2>
-    ${s.length?`<div class="kopru">${kopru.map(([a,v,c])=>`<div class="s ${c}"><span>${a}</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(v)/maks*100}%"></div></div><span class="tut">${v<0?"-":""}${tl0(Math.abs(v))}</span></div>`).join("")}<div class="s net ${t.net<0?"eksi":""}"><span>Cebine kalan</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(t.net)/maks*100}%"></div></div><span class="tut">${tl0(t.net)}</span></div></div>`:`<p class="not">Bu dönemde sipariş yok.</p>`}
+  <section class="kart"><h2>Kesintiler</h2>
+    ${s.length?`<div class="kopru">${kopru.map(([a,v,c])=>`<div class="s ${c}"><span>${a}</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(v)/maks*100}%"></div></div><span class="tut">${v<0?"-":""}${tl0(Math.abs(v))}</span></div>`).join("")}<div class="s net ${t.kalan<0?"eksi":""}"><span>Kalan</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(t.kalan)/maks*100}%"></div></div><span class="tut">${tl0(t.kalan)}</span></div></div>
+    ${tahmin&&!ornek?`<p class="not">${tahmin} siparişin kargo faturası henüz gelmedi, kargosu tahmini yazıldı.</p>`:""}`:`<p class="not">Bu dönemde sipariş yok.</p>`}
   </section>
-  <button class="btn ikinci" data-sipf="tum">Tüm siparişleri gör</button>
-  <details class="kart"><summary><h2>Günlük grafik</h2></summary>${gunlukGrafik(s,ar)}</details>
+  ${kontrol.length?`<div class="bant warn"><span>Trendyol ${kontrol.length} siparişte fazla kesmiş olabilir.</span><button class="btn kucuk ikinci" data-sipf="kontrol">Gör</button></div>`:""}
+  <section class="kart"><h2>En çok bırakan ürünler</h2>${urunTablo(urunListe.slice(0,5))}</section>
   ${yaklasan.length?`<details class="kart"><summary><h2>Yatacak para</h2></summary><div class="tablo-kap"><table><thead><tr><th>Tarih</th><th class="r">Tutar</th></tr></thead><tbody>${yaklasan.map(y=>`<tr><td>${tarihYaz(y.t)}</td><td class="r">${tl(y.tutar)}</td></tr>`).join("")}</tbody></table></div></details>`:""}`;
-  grafikBagla(e);
 }
 function urunTablo(l){
   if(!l.length)return '<p class="not">Bu dönemde satış yok.</p>';
-  return `<div class="tablo-kap"><table><thead><tr><th>Ürün</th><th class="r">Adet</th><th class="r">Kalan</th></tr></thead><tbody>${l.map(u=>`<tr><td>${esc(u.ad)}${u.eksik?' <span class="rozet warn">maliyet yok</span>':""}</td><td class="r">${u.adet}</td><td class="r ${u.net<0?"eksi":""}">${tl0(u.net)}</td></tr>`).join("")}</tbody></table></div>`;
-}
-function gunlukGrafik(s,ar){
-  if(!s.length)return '<p class="not">Bu dönemde sipariş yok.</p>';
-  const gunler=[];for(let g=new Date(ar.s);g.getTime()<ar.e;g.setDate(g.getDate()+1))gunler.push({t:g.getTime(),net:0,n:0});
-  const bul=ms=>{const d=new Date(ms);d.setHours(0,0,0,0);return gunler.find(g=>{const x=new Date(g.t);x.setHours(0,0,0,0);return x.getTime()===d.getTime()})};
-  s.forEach(r=>{const g=bul(r.k.tarih);if(g){g.net+=r.net;g.n++}});
-  const W=Math.max(300,Math.min(1000,($("#ekran").clientWidth||360)-30)),H=210,sol=46,sag=6,ust=10,alt=24;
-  const mx=Math.max(...gunler.map(g=>g.net),0),mn=Math.min(...gunler.map(g=>g.net),0);
-  const adim=temizAdim((mx-mn)||1);const ustD=Math.ceil(mx/adim)*adim;const altD=Math.floor(mn/adim)*adim;
-  const y=v=>ust+(ustD-v)/((ustD-altD)||1)*(H-ust-alt);
-  const bw=(W-sol-sag)/gunler.length;const kal=Math.min(24,Math.max(3,bw-2));
-  let tik="";for(let v=altD;v<=ustD+1e-6;v+=adim){tik+=`<line x1="${sol}" x2="${W-sag}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${sol-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--mono)">${kisa(v)}</text>`}
-  const bas=gunler.map((g,i)=>{
-    const x=sol+i*bw+(bw-kal)/2;const y0=y(0),y1=y(g.net);const h=Math.abs(y1-y0);
-    if(!g.n||h<.5)return "";
-    const r=Math.min(4,h,kal/2);
-    const d=g.net>=0?`M${x},${y0}V${y1+r}Q${x},${y1} ${x+r},${y1}H${x+kal-r}Q${x+kal},${y1} ${x+kal},${y1+r}V${y0}Z`:`M${x},${y0}V${y1-r}Q${x},${y1} ${x+r},${y1}H${x+kal-r}Q${x+kal},${y1} ${x+kal},${y1-r}V${y0}Z`;
-    return `<path d="${d}" fill="${g.net>=0?"var(--bar)":"var(--bad)"}"/>`;
-  }).join("");
-  const hit=gunler.map((g,i)=>`<rect class="vur" x="${sol+i*bw}" y="${ust}" width="${bw}" height="${H-ust-alt}" fill="transparent" data-i="${i}" data-g="${esc(gunYaz(g.t))}" data-n="${esc(tl(g.net))}" data-s="${g.n}"/>`).join("");
-  const eti=[0,Math.floor((gunler.length-1)/2),gunler.length-1].filter((v,i,a)=>a.indexOf(v)===i).map(i=>`<text x="${sol+i*bw+bw/2}" y="${H-7}" text-anchor="${i===0?"start":i===gunler.length-1?"end":"middle"}" font-size="11" fill="var(--muted)">${esc(gunYaz(gunler[i].t))}</text>`).join("");
-  return `<div class="grafik"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Günlük net kâr sütun grafiği">${tik}${bas}${eti}${hit}</svg></div>
-  <details><summary>Tablo olarak gör</summary><div class="tablo-kap"><table><thead><tr><th>Gün</th><th class="r">Satır</th><th class="r">Net kâr</th></tr></thead><tbody>${gunler.filter(g=>g.n).reverse().map(g=>`<tr><td>${esc(gunYaz(g.t))}</td><td class="r">${g.n}</td><td class="r ${g.net<0?"eksi":""}">${tl(g.net)}</td></tr>`).join("")}</tbody></table></div></details>`;
-}
-function temizAdim(a){const k=Math.pow(10,Math.floor(Math.log10(a/3)));const o=a/3/k;return (o<=1?1:o<=2?2:o<=5?5:10)*k}
-function kisa(v){return Math.abs(v)>=1000?new Intl.NumberFormat("tr-TR",{maximumFractionDigits:1}).format(v/1000)+"B":fmt0.format(v)}
-function grafikBagla(k){
-  const g=$(".grafik",k);if(!g)return;let ip=null;
-  const goster=t=>{if(!t||!t.classList.contains("vur"))return;if(!ip){ip=document.createElement("div");ip.className="ipucu";g.appendChild(ip)}
-    ip.textContent=`${t.dataset.g}: ${t.dataset.n}${t.dataset.s==="0"?" (sipariş yok)":""}`;
-    const b=t.getBoundingClientRect(),o=g.getBoundingClientRect();
-    ip.style.left=Math.max(70,Math.min(o.width-70,b.left-o.left+b.width/2))+"px";ip.style.top="26px"};
-  g.addEventListener("pointermove",ev=>goster(document.elementFromPoint(ev.clientX,ev.clientY)));
-  g.addEventListener("pointerdown",ev=>goster(ev.target));
-  g.addEventListener("pointerleave",()=>{if(ip){ip.remove();ip=null}});
+  return `<div class="tablo-kap"><table><thead><tr><th>Ürün</th><th class="r">Adet</th><th class="r">Kalan</th></tr></thead><tbody>${l.map(u=>`<tr><td>${esc(u.ad)}</td><td class="r">${u.adet}</td><td class="r ${u.kalan<0?"eksi":""}">${tl0(u.kalan)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 /* ---------- Kontrol: Trendyol'un kestiği ile olması gereken ---------- */
 function kontrolBul(sat){
@@ -497,88 +451,16 @@ function yaklasanOdeme(){
 /* ---------- Ürünler ---------- */
 function urunlerCiz(e){
   const A=D.ayar;
-  const liste=Object.values(D.urunler);
   const q=G.urunAra.toLocaleLowerCase("tr-TR");
-  const sat=liste.filter(u=>!q||(u.ad||"").toLocaleLowerCase("tr-TR").includes(q)||(u.sku||"").toLocaleLowerCase("tr-TR").includes(q)||(u.stok||"").toLocaleLowerCase("tr-TR").includes(q)).map(u=>{const t=u.fiyat?fiyatTest(+u.fiyat,u,"Trendyol",A):null;return {u,t,var:maliyetVar(u)}});
-  sat.sort((a,b)=>(a.var-b.var)||((a.t?a.t.marj:0)-(b.t?b.t.marj:0)));
-  const eksik=liste.filter(u=>!maliyetVar(u)).length;
+  const sat=Object.values(D.urunler).filter(u=>!q||(u.ad||"").toLocaleLowerCase("tr-TR").includes(q)).map(u=>({u,t:u.fiyat?fiyatTest(+u.fiyat,u,"Trendyol",A):null}));
+  sat.sort((a,b)=>(b.t?b.t.kalan:-1e9)-(a.t?a.t.kalan:-1e9));
   e.innerHTML=`
-  <section class="kart"><h2>Ürünler</h2><p class="not">Her üründe tanesinden cebine ne kaldığını gösterir.</p>
-    <div class="alan"><label for="urunAra">Ara</label><input id="urunAra" type="search" value="${esc(G.urunAra)}" placeholder="Ad veya stok kodu"></div>
-    ${liste.length?"":`<p class="not">Henüz ürün yok. Sağ üstteki ayarlardan mağazanı bağla.</p>`}
-    <div class="liste" id="urunListe">${sat.map(({u,t,var:v})=>`<button class="oge" data-urun="${esc(u.sku)}"><span><span class="ad">${esc(u.ad||u.sku)}</span><br><span class="kod">${u.fiyat?tl(+u.fiyat)+" satış":"fiyat yok"}</span></span>
-      <span class="sag">${v&&t?`<span class="${t.net<0?"eksi":""}">${tl0(t.net)}</span><small>tanesinden</small>`:""}${v&&t?marjRozet(t.marj,A):'<span class="rozet gri">maliyet yok</span>'}</span></button>`).join("")}</div>
+  <section class="kart"><h2>Ürünler</h2><p class="not">Şu anki fiyatla, kesintilerden sonra tanesinden kalan. Kargo tahminidir.</p>
+    <div class="alan"><label for="urunAra">Ara</label><input id="urunAra" type="search" value="${esc(G.urunAra)}" placeholder="Ürün adı"></div>
+    ${sat.length?"":`<p class="not">Henüz ürün yok. Sağ üstteki ayarlardan mağazanı bağla.</p>`}
+    <div class="liste" id="urunListe">${sat.map(({u,t})=>`<div class="oge" style="cursor:default"><span><span class="ad">${esc(temizAd(u.ad)||u.sku)}</span><br><span class="kod">${u.fiyat?tl(+u.fiyat)+" satış":"fiyat yok"}</span></span><span class="sag">${t?`<span class="${t.kalan<0?"eksi":""}">${tl(t.kalan)}</span><small>tanesinden</small>`:""}</span></div>`).join("")}</div>
   </section>`;
   $("#urunAra").addEventListener("input",ev=>{G.urunAra=ev.target.value;const p=ev.target.selectionStart;urunlerCiz(e);const i=$("#urunAra");i.focus();i.setSelectionRange(p,p)});
-}
-function urunLevha(sku){
-  const u=D.urunler[sku];if(!u)return;
-  const A=D.ayar;
-  const alan=(id,et,v,tip="number",adim="any")=>`<div class="alan"><label for="${id}">${et}</label><input id="${id}" type="${tip}" inputmode="decimal" step="${adim}" value="${esc(v==null?"":v)}"></div>`;
-  $("#katman").innerHTML=`<div class="perde" id="perde"><div class="levha" role="dialog" aria-modal="true" aria-label="${esc(u.ad||u.sku)}">
-    <h2>${esc(u.ad||u.sku)}</h2>
-    ${alan("uFiyat","Satış fiyatı TL",u.fiyat)}
-    <div class="dokum" id="uSonuc"></div>
-    <details><summary>Maliyeti değiştir</summary>
-      <p class="not" id="uOtoNot" style="margin-block:6px">${u.otoMaliyet?"Gram ve süre STL dosyasından hesaplandı. Dokunmana gerek yok.":"Gram ve baskı süresini yazman yeterli."}</p>
-      <div class="alanlar">${alan("uGram","Gram",u.gram)}${alan("uSaat","Baskı süresi (saat)",u.saat)}${alan("uIsc","İşçilik (dakika)",u.iscilikDk)}${alan("uAmb","Ambalaj TL",u.ambalaj)}${alan("uKom","Komisyon %",u.komisyon)}${alan("uDesi","Desi",u.desi)}${alan("uEl","Toplam maliyeti biliyorsan TL",u.elMaliyet)}</div>
-    </details>
-    <div class="sira"><button class="btn" id="uKapat">Bitti</button><button class="btn ikinci" id="uFiyatGit">Fiyatı dene</button></div>
-  </div></div>`;
-  const oku=()=>{const n=id=>{const v=$("#"+id).value;return v===""?null:+v};
-    u.gram=n("uGram");u.saat=n("uSaat");u.iscilikDk=n("uIsc");u.ambalaj=n("uAmb");u.fiyat=n("uFiyat");u.komisyon=n("uKom");u.desi=n("uDesi");u.elMaliyet=n("uEl");u.otoMaliyet=false;urunlerKaydet();sonuc()};
-  const sonuc=()=>{
-    const m=birimMaliyet(u,A);const f=+u.fiyat||0;
-    const t=f?fiyatTest(f,u,"Trendyol",A):null;
-    $("#uSonuc").innerHTML=`<div class="s"><span>Üretim maliyeti</span><span>${tl(m.toplam)}</span></div>${t?`<div class="s top"><span>Tanesinden cebine kalan</span><span class="${t.net<0?"eksi":""}">${tl(t.net)}</span></div>`:""}`;
-  };
-  $("#katman").querySelectorAll("input").forEach(i=>i.addEventListener("input",oku));sonuc();
-  const kapat=()=>{$("#katman").innerHTML="";ciz()};
-  $("#uKapat").onclick=kapat;$("#perde").addEventListener("click",ev=>{if(ev.target.id==="perde")kapat()});
-  $("#uFiyatGit").onclick=()=>{G.fiyatSku=sku;G.fiyat=u.fiyat||"";G.fiyatKom="";G.sekme="fiyat";kapat()};
-}
-/* ---------- Fiyat ---------- */
-function fiyatCiz(e){
-  const A=D.ayar;
-  const liste=Object.values(D.urunler).sort((a,b)=>(a.ad||"").localeCompare(b.ad||"","tr"));
-  const ornek=!liste.length;
-  const u=D.urunler[G.fiyatSku]||(ornek?ORNEK_URUN["ORNEK-A"]:liste[0]);
-  if(!G.fiyatSku&&u){G.fiyatSku=u.sku}
-  if(G.fiyat===""&&u&&u.fiyat)G.fiyat=u.fiyat;
-  const f=+G.fiyat||0;
-  const kom=G.fiyatKom;
-  const t=f?fiyatTest(f,u,G.fiyatKanal,A,kom):null;
-  const hedef=G.hedefMarj===""?+A.hedefMarj:+G.hedefMarj;
-  const oner=fiyatBul(hedef,u,G.fiyatKanal,A,kom);
-  const satir=(a,v,c="")=>`<div class="s ${c}"><span>${a}</span><span>${v}</span></div>`;
-  const kamp=+G.kampanya||0;const kr=kamp?fiyatTest(kamp,u,G.fiyatKanal,A,kom):null;
-  const karar=m=>m<0?'<span class="rozet bad">▼ Katılma</span>':m<+A.kritikMarj?'<span class="rozet warn">! Az kalıyor</span>':'<span class="rozet ok">✓ Katıl</span>';
-  e.innerHTML=`
-  <section class="kart"><h2>Bu fiyata satarsam ne kalır?</h2>
-    <div class="alan"><label for="fUrun">Ürün</label><select id="fUrun">${ornek?`<option>${esc(u.ad)}</option>`:liste.map(x=>`<option value="${esc(x.sku)}" ${x.sku===u.sku?"selected":""}>${esc(x.ad||x.sku)}</option>`).join("")}</select></div>
-    <div class="alan"><label for="fFiyat">Satış fiyatı TL</label><input id="fFiyat" type="number" inputmode="decimal" step="any" value="${esc(G.fiyat)}"></div>
-    ${t?`<div class="satirbas"><span class="sonuc ${t.net<0?"eksi":""}">${tl(t.net)} kalır</span>${marjRozet(t.marj,A)}</div>`:'<p class="not">Fiyat yaz.</p>'}
-    ${!maliyetVar(u)?`<p class="not">Bu üründe maliyet yok, gerçekte biraz daha az kalır.</p>`:""}
-  </section>
-  <section class="kart"><h2>Kampanya teklifi geldi mi?</h2>
-    <div class="alan"><label for="fKamp">Teklif edilen fiyat TL</label><input id="fKamp" type="number" inputmode="decimal" step="any" value="${esc(G.kampanya)}"></div>
-    ${kr?`<div class="satirbas"><span class="sonuc ${kr.net<0?"eksi":""}">${tl(kr.net)} kalır</span>${karar(kr.marj)}</div>`:""}
-  </section>
-  <details class="kart"><summary><h2>Ayrıntılar</h2></summary>
-    <div class="alanlar">
-      <div class="alan"><label for="fKanal">Kanal</label><select id="fKanal">${Object.keys(A.kanallar).map(k=>`<option ${k===G.fiyatKanal?"selected":""}>${esc(k)}</option>`).join("")}</select></div>
-      <div class="alan"><label for="fKom">Komisyon %</label><input id="fKom" type="number" inputmode="decimal" step="any" value="${esc(G.fiyatKom)}"></div>
-      <div class="alan"><label for="fHedef">Hedef kâr %</label><input id="fHedef" type="number" inputmode="decimal" step="any" value="${esc(hedef)}"></div>
-    </div>
-    ${t?`<div class="dokum">${satir("Satış",tl(t.brut))}${satir("Vergi (KDV)",dus(t.netKdv))}${satir("Komisyon",dus(t.komisyon))}${satir("Kargo",dus(t.kargo))}${satir("Hizmet bedeli",dus(t.hizmet))}${satir("Stopaj",dus(t.stopaj))}${satir("Üretim",dus(t.uretim))}${satir("Cebine kalan",`<span class="${t.net<0?"eksi":""}">${tl(t.net)}</span>`,"top")}</div>`:""}
-    ${oner?`<div class="bant info"><span>%${esc(hedef)} kâr için en düşük fiyat <b class="mono">${tl(oner)}</b></span><button class="btn kucuk" id="fUygula">Dene</button></div>`:""}
-    ${f?`<div class="tablo-kap"><table><thead><tr><th>Kanal</th><th class="r">Kalan</th></tr></thead><tbody>${Object.keys(A.kanallar).map(k=>{const r=fiyatTest(f,u,k,A);return `<tr><td>${esc(k)}</td><td class="r ${r.net<0?"eksi":""}">${tl(r.net)}</td></tr>`}).join("")}</tbody></table></div>`:""}
-  </details>`;
-  const yeniden=(id)=>{const el=$("#"+id);const p=el.selectionStart;fiyatCiz(e);const n=$("#"+id);n.focus();try{n.setSelectionRange(p,p)}catch(x){}};
-  $("#fUrun").onchange=ev=>{G.fiyatSku=ev.target.value;const x=D.urunler[G.fiyatSku];G.fiyat=x&&x.fiyat||"";G.fiyatKom="";G.kampanya="";fiyatCiz(e)};
-  $("#fKanal").onchange=ev=>{G.fiyatKanal=ev.target.value;fiyatCiz(e)};
-  [["fFiyat","fiyat"],["fKom","fiyatKom"],["fHedef","hedefMarj"],["fKamp","kampanya"]].forEach(([id,a])=>$("#"+id).addEventListener("change",ev=>{G[a]=ev.target.value;yeniden(id)}));
-  const uy=$("#fUygula");if(uy)uy.onclick=()=>{G.fiyat=oner;fiyatCiz(e)};
 }
 /* ---------- Siparişler ---------- */
 function siparisCiz(e){
@@ -586,33 +468,27 @@ function siparisCiz(e){
   const tum=satirlariHesapla(kalemler,urunler,A,D.kargolar);
   const iptal=kalemler.filter(k=>k.durum==="iptal").length;
   const kontrol=kontrolBul(tum);
-  const fl={tum:()=>true,zarar:r=>r.net<0,iade:r=>r.iade,eksik:r=>r.maliyetEksik};
+  const fl={tum:()=>true,iade:r=>r.iade};
   const sat=G.sipFiltre==="kontrol"?[]:tum.filter(fl[G.sipFiltre]).slice(0,150);
   const say=f=>tum.filter(fl[f]).length;
-  e.innerHTML=`${geri()}${ornek?ornekBant():""}
-  <div class="cipler" role="group" aria-label="Filtre">${[["tum","Tümü",tum.length],["zarar","Zarar",say("zarar")],["iade","İade",say("iade")],["kontrol","Fazla kesinti",kontrol.length]].map(([f,a,n])=>`<button class="cip" data-sipf="${f}" aria-pressed="${G.sipFiltre===f}">${a} · ${n}</button>`).join("")}</div>
+  e.innerHTML=`${ornek?ornekBant():""}
+  <div class="cipler" role="group" aria-label="Filtre">${[["tum","Tümü",tum.length],["iade","İade",say("iade")],["kontrol","Fazla kesinti",kontrol.length]].map(([f,a,n])=>`<button class="cip" data-sipf="${f}" aria-pressed="${G.sipFiltre===f}">${a} · ${n}</button>`).join("")}</div>
   ${G.sipFiltre==="kontrol"?`<section class="kart"><h2>Kesinti kontrolü</h2><p class="not">Pazaryerinin kestiği ile hesaplanan farklıysa burada görünür. Komisyon ve desi kontrolü Trendyol bağlantısıyla çalışır. Fark görürsen satıcı panelinden itiraz edebilirsin.</p>
     ${kontrol.length?`<div class="tablo-kap"><table><thead><tr><th>Sipariş</th><th>Tür</th><th class="r">Olması gereken</th><th class="r">Kesilen</th></tr></thead><tbody>${kontrol.map(c=>`<tr><td>${esc(c.r.k.siparisNo)}<br><span class="not">${esc(c.not)}</span></td><td>${c.tur}</td><td class="r">${c.adet?c.bek+" desi":tl(c.bek)}</td><td class="r eksi">${c.adet?c.ger+" desi":tl(c.ger)}</td></tr>`).join("")}</tbody></table></div>`:'<p class="not">Fark yok.</p>'}
     ${Object.keys(D.hizmetFatura).length?`<h3>Faturalanan hizmet bedeli</h3><div class="dokum">${Object.entries(D.hizmetFatura).sort().reverse().map(([a,v])=>`<div class="s"><span>${esc(a)}</span><span>${tl(v)}</span></div>`).join("")}</div>`:""}</section>`:
   `<section class="kart"><div class="satirbas"><h2>Siparişler</h2>${iptal?`<span class="not">${iptal} iptal hesaba katılmadı</span>`:""}</div>
     <div class="liste">${sat.map((r,i)=>`<button class="oge" data-sat="${i}"><span><span class="ad">${esc(urunAd(r))}</span><br><span class="kod">${tarihYaz(r.k.tarih)} · ${esc(r.k.kanal)} · ${esc(r.k.siparisNo||r.k.paket)}${r.adet>1?" · "+r.adet+" adet":""}</span></span>
-    <span class="sag"><span class="${r.net<0?"eksi":""}">${tl(r.net)}</span><small>${tl(r.brut)}</small>${durumRozet(r)}</span></button>`).join("")||'<p class="not">Bu filtrede kayıt yok.</p>'}</div>
+    <span class="sag"><span class="${r.kalan<0?"eksi":""}">${tl(r.kalan)}</span><small>${tl(r.brut)} satış</small>${r.iade?'<span class="rozet bad">↩ İade</span>':r.k.durum==="yolda"?'<span class="rozet gri">Yolda</span>':""}</span></button>`).join("")||'<p class="not">Bu filtrede kayıt yok.</p>'}</div>
     ${tum.filter(fl[G.sipFiltre]).length>150?'<p class="not">İlk 150 kayıt gösteriliyor.</p>':""}
   </section>`}`;
   e.querySelectorAll("[data-sat]").forEach(b=>b.onclick=()=>satirLevha(sat[+b.dataset.sat]));
-}
-function durumRozet(r){
-  if(r.iade)return '<span class="rozet bad">↩ İade</span>';
-  if(r.maliyetEksik)return '<span class="rozet warn">maliyet yok</span>';
-  if(r.k.durum==="yolda")return '<span class="rozet gri">Yolda</span>';
-  return r.net<0?'<span class="rozet bad">▼ Zarar</span>':'<span class="rozet ok">✓ Teslim</span>';
 }
 function satirLevha(r){
   const s=(a,v,fl="",c="")=>`<div class="s ${c}"><span>${a}${fl}</span><span>${v}</span></div>`;
   const G1='<span class="ger">GERÇEK</span>',T1='<span class="tah">TAHMİN</span>';
   $("#katman").innerHTML=`<div class="perde" id="perde"><div class="levha" role="dialog" aria-modal="true" aria-label="Sipariş dökümü"><h2>${esc(urunAd(r))}</h2>
    <span class="not">${tarihYaz(r.k.tarih)} · ${esc(r.k.kanal)} · Sipariş ${esc(r.k.siparisNo||"")} · ${r.adet} adet</span>
-   <div class="dokum">${s("Satış",tl(r.brut))}${s("Vergi (KDV)",dus(r.netKdv))}${s("Komisyon ("+yuzde(r.oran)+")",dus(r.komisyon),r.komGercek?G1:T1)}${s("Kargo",dus(r.kargo),r.kargoGercek?G1:T1)}${s("Hizmet bedeli",dus(r.hizmet),T1)}${s("Stopaj",dus(r.stopaj))}${s("Üretim maliyeti",dus(r.uretim),r.maliyetEksik?'<span class="tah">GİRİLMEDİ</span>':"")}${s("Cebine kalan",`<span class="${r.net<0?"eksi":""}">${tl(r.net)}</span>`,"","top")}</div>
+   <div class="dokum">${s("Satış",tl(r.brut))}${s("Komisyon ("+yuzde(r.oran)+")",dus(r.komisyon),r.komGercek?G1:T1)}${s("Kargo",dus(r.kargo),r.kargoGercek?G1:T1)}${r.hizmet?s("Hizmet bedeli",dus(r.hizmet),T1):""}${s("Stopaj",dus(r.stopajTL))}${s("Kalan",`<span class="${r.kalan<0?"eksi":""}">${tl(r.kalan)}</span>`,"","top")}</div>
    <button class="btn" id="sKapat">Kapat</button></div></div>`;
   const k=()=>{$("#katman").innerHTML=""};$("#sKapat").onclick=k;$("#perde").addEventListener("click",ev=>{if(ev.target.id==="perde")k()});
 }
@@ -871,10 +747,7 @@ function veriCiz(e){
     <div class="alan"><label for="exDosya">Dosya</label><input id="exDosya" type="file" accept=".xlsx,.xls,.csv"></div></div>
     <div id="exEsle"></div>
   </details>
-  <details class="kart" id="ayarlar"><summary><h2>Hesap ayarları</h2></summary>
-    <h3>Üretim maliyeti</h3>
-    <div class="alanlar">${sayi("filamentKg","Filament TL/kg",A.filamentKg)}${sayi("fire","Fire %",A.fire)}${sayi("makineSaat","Makine TL/saat",A.makineSaat)}${sayi("iscilikSaat","İşçilik TL/saat",A.iscilikSaat)}${sayi("ambalaj","Ambalaj TL",A.ambalaj)}</div>
-    <label class="onay"><input type="checkbox" data-onay="uretim" ${A.onay.uretim?"checked":""}><span>Bu rakamlar benim gerçek maliyetlerim</span></label>
+  <details class="kart" id="ayarlar"><summary><h2>Kesinti ayarları</h2></summary>
     <h3>Kargo (KDV dahil, panelindeki tarife)</h3>
     <div class="alanlar">${kargoS}${sayi("iadeKargo","İade kargosu TL",A.iadeKargo)}</div>
     <p class="not">Trendyol bağlıyken gerçek kargo faturası bunların yerine geçer. Başlangıçtaki 80 TL örnektir.</p>
@@ -883,11 +756,7 @@ function veriCiz(e){
     <div class="tablo-kap"><table><thead><tr><th>Kanal</th><th>Komisyon %</th><th>Sabit TL</th><th>Hizmet TL/paket</th></tr></thead><tbody>${kanal}</tbody></table></div>
     <p class="not">Trendyol'da gerçek komisyon her siparişten okunur. Başlangıç oranları örnektir, hizmet bedeli 0 girilidir.</p>
     <label class="onay"><input type="checkbox" data-onay="komisyon" ${A.onay.komisyon?"checked":""}><span>Komisyon ve hizmet bedelimi panelden kontrol ettim</span></label>
-    <h3>Vergi ve hedef</h3>
-    <div class="alanlar">${sayi("kdv","Satış KDV %",A.kdv)}${sayi("stopajOran","Stopaj %",A.stopajOran)}${sayi("hedefMarj","Hedef net marj %",A.hedefMarj)}${sayi("kritikMarj","Uyarı marjı %",A.kritikMarj)}</div>
-    <label class="onay"><input type="checkbox" data-sec="kdvMahsup" ${A.kdvMahsup?"checked":""}><span>Giderlerin KDV'sini mahsup ediyorum (net KDV). KDV mükellefi değilsen kapat.</span></label>
-    <label class="onay"><input type="checkbox" data-sec="stopajGider" ${A.stopajGider?"checked":""}><span>Stopajı gider say. Yıl sonu vergiden düşülebildiği için kapatmak isteyebilirsin; muhasebecine sor.</span></label>
-    <label class="onay"><input type="checkbox" data-sec="iadeParcaKayip" ${A.iadeParcaKayip?"checked":""}><span>İade gelen parçayı tekrar satamıyorum (maliyeti zarar yazılır)</span></label>
+    <div class="alanlar">${sayi("stopajOran","Stopaj %",A.stopajOran)}</div>
   </details>
   <details class="kart"><summary><h2>Yedek</h2></summary><p class="not">${n} sipariş satırı, ${Object.keys(D.urunler).length} ürün kayıtlı.</p>
     <div class="sira"><button class="btn ikinci" id="yedekAl">Yedeği indir</button><label class="btn ikinci" for="yedekDosya" style="display:inline-flex;align-items:center">Yedekten yükle</label><input id="yedekDosya" type="file" accept=".json" hidden></div>
@@ -959,12 +828,11 @@ function yedekYukle(ev){
 }
 /* ---------- Olay yönlendirme ---------- */
 document.addEventListener("click",ev=>{
-  const t=ev.target.closest("[data-sekme],[data-git],[data-donem],[data-kanal],[data-urun],[data-sipf]");if(!t)return;
+  const t=ev.target.closest("[data-sekme],[data-git],[data-donem],[data-kanal],[data-sipf]");if(!t)return;
   if(t.dataset.sekme){G.sekme=t.dataset.sekme;ciz();scrollTo(0,0)}
   else if(t.dataset.git){G.sekme=t.dataset.git;ciz();const h=t.dataset.odak&&document.getElementById(t.dataset.odak);if(h)h.scrollIntoView();else scrollTo(0,0)}
   else if(t.dataset.donem){G.donem=t.dataset.donem;ciz()}
   else if(t.dataset.kanal){G.kanal=t.dataset.kanal;ciz()}
-  else if(t.dataset.urun){if(D.urunler[t.dataset.urun])urunLevha(t.dataset.urun);else uyar("Örnek ürün değiştirilemez. Önce ürünlerini yükle.")}
   else if(t.dataset.sipf){G.sipFiltre=t.dataset.sipf;G.sekme="siparis";ciz()}
 });
 document.addEventListener("keydown",ev=>{if(ev.key==="Escape"&&$("#perde")){$("#katman").innerHTML="";ciz()}});
