@@ -177,8 +177,8 @@ const VARSAYILAN = {
   filamentKg:600, fire:12, makineSaat:15, iscilikSaat:300, ambalaj:20,
   kdv:20, kdvMahsup:true, stopajOran:1, stopajGider:true, iadeParcaKayip:true,
   hedefMarj:20, kritikMarj:10,
-  kargo:[{ust:150,tl:80},{ust:300,tl:80},{ust:0,tl:80}], iadeKargo:80,
-  kanallar:{Trendyol:{komisyon:15,sabit:0,hizmet:0},Hepsiburada:{komisyon:15,sabit:10,hizmet:0},N11:{komisyon:15,sabit:0,hizmet:0}},
+  sabitKesinti:true, ayarSurum:2, kargo:[{ust:300,tl:87.5},{ust:0,tl:98.34}], iadeKargo:87.5,
+  kanallar:{Trendyol:{komisyon:4,sabit:0,hizmet:13.19},Hepsiburada:{komisyon:15,sabit:10,hizmet:0},N11:{komisyon:15,sabit:0,hizmet:0}},
   onay:{uretim:false,kargo:false,komisyon:false}
 };
 function uretimKirilim(u,A){
@@ -194,7 +194,7 @@ function birimMaliyet(u,A){
   return u?uretimKirilim(u,A):{fil:0,mak:0,isc:0,amb:0,toplam:0,kdvli:0};
 }
 function kargoTarife(tutar,A){
-  for(const b of A.kargo){if(+b.ust>0&&tutar<+b.ust)return +b.tl}
+  for(const b of A.kargo){if(+b.ust>0&&tutar<=+b.ust)return +b.tl}
   const son=A.kargo[A.kargo.length-1];return son?+son.tl:0;
 }
 /* Tüm giderler KDV dahil kabul edilir. Net = KDV dahil satış - giderler - net KDV - stopaj */
@@ -207,13 +207,14 @@ function netHesap({brut,kdv,komisyon,kargo,hizmet,uretim,uretimKdvli},A){
   const net=brut-komisyon-kargo-hizmet-uretim-netKdv-stopaj;
   const kdvHaric=brut/(1+k);
   const stopajTL=(brut/(1+k))*(+A.stopajOran||0)/100;
-  const kalan=brut-komisyon-kargo-hizmet-stopajTL;
-  return {brut,komisyon,kargo,hizmet,uretim,netKdv,stopaj,net,marj:kdvHaric>0?net/kdvHaric*100:0,kdvHaric,stopajTL,kalan};
+  const kdvTL=satisKdv;
+  const kalan=brut-kdvTL-komisyon-kargo-hizmet-stopajTL;
+  return {brut,komisyon,kargo,hizmet,uretim,netKdv,stopaj,net,marj:kdvHaric>0?net/kdvHaric*100:0,kdvHaric,stopajTL,kdvTL,kalan};
 }
 function fiyatTest(fiyat,u,kanal,A,komOran){
   const K=A.kanallar[kanal]||{komisyon:0,sabit:0,hizmet:0};
   const m=birimMaliyet(u,A);
-  const oran=komOran!=null&&komOran!==""?+komOran:(u&&u.komisyon!=null&&u.komisyon!==""&&kanal==="Trendyol"?+u.komisyon:+K.komisyon);
+  const oran=komOran!=null&&komOran!==""?+komOran:(!A.sabitKesinti&&u&&u.komisyon!=null&&u.komisyon!==""&&kanal==="Trendyol"?+u.komisyon:+K.komisyon);
   return netHesap({brut:fiyat,kdv:u&&+u.kdv?+u.kdv:+A.kdv,komisyon:fiyat*oran/100+(+K.sabit||0),kargo:kargoTarife(fiyat,A),hizmet:+K.hizmet||0,uretim:m.toplam,uretimKdvli:m.kdvli},A);
 }
 function fiyatBul(hedefMarj,u,kanal,A,komOran){
@@ -235,11 +236,12 @@ function satirlariHesapla(kalemler,urunler,A,kargolar){
     const p=satirlar[0];
     const K=A.kanallar[p.kanal]||{komisyon:0,sabit:0,hizmet:0};
     const toplamBrut=satirlar.reduce((t,k)=>t+(k.durum==="iade"?0:+k.brut||0),0);
-    const fat=kargolar&&kargolar[p.siparisNo];
+    const sabit=A.sabitKesinti&&p.kanal==="Trendyol";
+    const fat=!sabit&&kargolar&&kargolar[p.siparisNo];
     const kargoGercek=fat&&fat.gidis>0;
-    const gidis=kargoGercek?fat.gidis/(fat.paket||1):(p.kargoTL!=null?+p.kargoTL:kargoTarife(toplamBrut||satirlar.reduce((t,k)=>t+(+k.brut||0),0),A));
+    const gidis=kargoGercek?fat.gidis/(fat.paket||1):(!sabit&&p.kargoTL!=null?+p.kargoTL:kargoTarife(toplamBrut||satirlar.reduce((t,k)=>t+(+k.brut||0),0),A));
     const iadeVar=satirlar.some(k=>k.durum==="iade");
-    const donus=iadeVar?(fat&&fat.iade>0?fat.iade/(fat.paket||1):+A.iadeKargo||0):0;
+    const donus=iadeVar?(sabit?gidis:(fat&&fat.iade>0?fat.iade/(fat.paket||1):+A.iadeKargo||0)):0;
     const kargoPaket=gidis+donus;
     const hizmetPaket=+K.hizmet||0;
     const pay0=satirlar.length;
@@ -249,23 +251,23 @@ function satirlariHesapla(kalemler,urunler,A,kargolar){
       const iade=k.durum==="iade";
       const brut=iade?0:(+k.brut||0);
       const pay=toplamBrut>0?brut/toplamBrut:(1/pay0);
-      const oran=k.komisyonOran!=null?+k.komisyonOran:(u&&u.komisyon!=null&&u.komisyon!==""?+u.komisyon:+K.komisyon);
-      const komGercek=k.komisyonTL!=null;
+      const oran=sabit?+K.komisyon:(k.komisyonOran!=null?+k.komisyonOran:(u&&u.komisyon!=null&&u.komisyon!==""?+u.komisyon:+K.komisyon));
+      const komGercek=!sabit&&k.komisyonTL!=null;
       const kom=iade?0:(komGercek?+k.komisyonTL:brut*oran/100+(+K.sabit||0)*pay);
       const m=birimMaliyet(u,A);
       const adet=+k.adet||1;
       const kayip=iade&&!A.iadeParcaKayip;
       const uretim=kayip?0:m.toplam*adet;
       const n=netHesap({brut,kdv:k.kdvOran!=null?+k.kdvOran:(u&&+u.kdv?+u.kdv:+A.kdv),komisyon:kom,kargo:kargoPaket*pay,hizmet:hizmetPaket*pay,uretim,uretimKdvli:kayip?0:m.kdvli*adet},A);
-      sonuc.push({...n,k,u,oran,adet,komGercek,kargoGercek:!!kargoGercek||p.kargoTL!=null,maliyetEksik:!maliyetVar(u),iade});
+      sonuc.push({...n,k,u,oran,adet,komGercek,kargoGercek:!!kargoGercek||(!sabit&&p.kargoTL!=null),maliyetEksik:!maliyetVar(u),iade});
     }
   }
   return sonuc.sort((a,b)=>b.k.tarih-a.k.tarih);
 }
 function topla(s){
-  const t={brut:0,kdvHaric:0,netKdv:0,komisyon:0,kargo:0,hizmet:0,stopaj:0,uretim:0,net:0,stopajTL:0,kalan:0,adet:0,iade:0};
+  const t={brut:0,kdvHaric:0,netKdv:0,komisyon:0,kargo:0,hizmet:0,stopaj:0,uretim:0,net:0,stopajTL:0,kdvTL:0,kalan:0,adet:0,iade:0};
   const pk=new Set();
-  for(const r of s){for(const a of ["brut","kdvHaric","netKdv","komisyon","kargo","hizmet","stopaj","uretim","net","stopajTL","kalan"])t[a]+=r[a];if(!r.iade)t.adet+=r.adet;else t.iade++;pk.add(paketKey(r.k))}
+  for(const r of s){for(const a of ["brut","kdvHaric","netKdv","komisyon","kargo","hizmet","stopaj","uretim","net","stopajTL","kdvTL","kalan"])t[a]+=r[a];if(!r.iade)t.adet+=r.adet;else t.iade++;pk.add(paketKey(r.k))}
   t.paket=pk.size;t.marj=t.kdvHaric>0?t.net/t.kdvHaric*100:0;return t;
 }
 /* ---------- Veri deposu: Claude'da db, telefonda localStorage ---------- */
@@ -314,7 +316,9 @@ async function kalemleriKaydet(){
 function ayAnahtar(ms){const t=new Date(ms);return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")}
 function birlestirAyar(a){
   const v=JSON.parse(JSON.stringify(VARSAYILAN));
-  return {...v,...a,kanallar:{...v.kanallar,...(a.kanallar||{})},onay:{...v.onay,...(a.onay||{})},kargo:a.kargo&&a.kargo.length?a.kargo:v.kargo};
+  const sonuc={...v,...a,kanallar:{...v.kanallar,...(a.kanallar||{})},onay:{...v.onay,...(a.onay||{})},kargo:a.kargo&&a.kargo.length?a.kargo:v.kargo};
+  if(a.ayarSurum!==v.ayarSurum){sonuc.ayarSurum=v.ayarSurum;sonuc.sabitKesinti=v.sabitKesinti;sonuc.kargo=v.kargo;sonuc.iadeKargo=v.iadeKargo;sonuc.kanallar.Trendyol=v.kanallar.Trendyol}
+  return sonuc;
 }
 async function yukle(){
   await Depo.baslat();
@@ -398,11 +402,10 @@ function ozetCiz(e){
   const t=topla(s),to=topla(on);
   const kanallar=["Hepsi",...new Set(kalemler.map(k=>k.kanal))];
   const maks=Math.max(t.brut,Math.abs(t.kalan),1);
-  const kopru=[["Satış",t.brut,"ciro"],["Komisyon",-t.komisyon,""],["Kargo",-t.kargo,""],["Hizmet bedeli",-t.hizmet,""],["Stopaj",-t.stopajTL,""]].filter(([a,v])=>a!=="Hizmet bedeli"||v);
+  const kopru=[["Satış",t.brut,"ciro"],["KDV",-t.kdvTL,""],["Komisyon",-t.komisyon,""],["Kargo",-t.kargo,""],["Hizmet bedeli",-t.hizmet,""],["Stopaj",-t.stopajTL,""]];
   const urunMap={};
   s.forEach(r=>{const a=r.k.barkod||r.k.sku;const m=urunMap[a]=urunMap[a]||{ad:urunAd(r),adet:0,kalan:0};m.adet+=r.adet;m.kalan+=r.kalan});
   const urunListe=Object.values(urunMap).sort((a,b)=>b.kalan-a.kalan);
-  const tahmin=s.filter(r=>!r.kargoGercek&&!r.iade).length;
   const kontrol=kontrolBul(s);
   const yaklasan=yaklasanOdeme();
   e.innerHTML=`
@@ -415,8 +418,7 @@ function ozetCiz(e){
     <p class="cumle">${fmt0.format(t.paket)} siparişten ${tl0(t.brut)} satış yaptın.</p>
   </section>
   <section class="kart"><h2>Kesintiler</h2>
-    ${s.length?`<div class="kopru">${kopru.map(([a,v,c])=>`<div class="s ${c}"><span>${a}</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(v)/maks*100}%"></div></div><span class="tut">${v<0?"-":""}${tl0(Math.abs(v))}</span></div>`).join("")}<div class="s net ${t.kalan<0?"eksi":""}"><span>Kalan</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(t.kalan)/maks*100}%"></div></div><span class="tut">${tl0(t.kalan)}</span></div></div>
-    ${tahmin&&!ornek?`<p class="not">${tahmin} siparişin kargo faturası henüz gelmedi, kargosu tahmini yazıldı.</p>`:""}`:`<p class="not">Bu dönemde sipariş yok.</p>`}
+    ${s.length?`<div class="kopru">${kopru.map(([a,v,c])=>`<div class="s ${c}"><span>${a}</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(v)/maks*100}%"></div></div><span class="tut">${v<0?"-":""}${tl0(Math.abs(v))}</span></div>`).join("")}<div class="s net ${t.kalan<0?"eksi":""}"><span>Kalan</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(t.kalan)/maks*100}%"></div></div><span class="tut">${tl0(t.kalan)}</span></div></div>`:`<p class="not">Bu dönemde sipariş yok.</p>`}
   </section>
   ${kontrol.length?`<div class="bant warn"><span>Trendyol ${kontrol.length} siparişte fazla kesmiş olabilir.</span><button class="btn kucuk ikinci" data-sipf="kontrol">Gör</button></div>`:""}
   <section class="kart"><h2>En çok bırakan ürünler</h2>${urunTablo(urunListe.slice(0,5))}</section>
@@ -455,7 +457,7 @@ function urunlerCiz(e){
   const sat=Object.values(D.urunler).filter(u=>!q||(u.ad||"").toLocaleLowerCase("tr-TR").includes(q)).map(u=>({u,t:u.fiyat?fiyatTest(+u.fiyat,u,"Trendyol",A):null}));
   sat.sort((a,b)=>(b.t?b.t.kalan:-1e9)-(a.t?a.t.kalan:-1e9));
   e.innerHTML=`
-  <section class="kart"><h2>Ürünler</h2><p class="not">Şu anki fiyatla, kesintilerden sonra tanesinden kalan. Kargo tahminidir.</p>
+  <section class="kart"><h2>Ürünler</h2><p class="not">Şu anki fiyatla, kesintilerden sonra tanesinden kalan.</p>
     <div class="alan"><label for="urunAra">Ara</label><input id="urunAra" type="search" value="${esc(G.urunAra)}" placeholder="Ürün adı"></div>
     ${sat.length?"":`<p class="not">Henüz ürün yok. Sağ üstteki ayarlardan mağazanı bağla.</p>`}
     <div class="liste" id="urunListe">${sat.map(({u,t})=>`<div class="oge" style="cursor:default"><span><span class="ad">${esc(temizAd(u.ad)||u.sku)}</span><br><span class="kod">${u.fiyat?tl(+u.fiyat)+" satış":"fiyat yok"}</span></span><span class="sag">${t?`<span class="${t.kalan<0?"eksi":""}">${tl(t.kalan)}</span><small>tanesinden</small>`:""}</span></div>`).join("")}</div>
@@ -485,10 +487,9 @@ function siparisCiz(e){
 }
 function satirLevha(r){
   const s=(a,v,fl="",c="")=>`<div class="s ${c}"><span>${a}${fl}</span><span>${v}</span></div>`;
-  const G1='<span class="ger">GERÇEK</span>',T1='<span class="tah">TAHMİN</span>';
   $("#katman").innerHTML=`<div class="perde" id="perde"><div class="levha" role="dialog" aria-modal="true" aria-label="Sipariş dökümü"><h2>${esc(urunAd(r))}</h2>
    <span class="not">${tarihYaz(r.k.tarih)} · ${esc(r.k.kanal)} · Sipariş ${esc(r.k.siparisNo||"")} · ${r.adet} adet</span>
-   <div class="dokum">${s("Satış",tl(r.brut))}${s("Komisyon ("+yuzde(r.oran)+")",dus(r.komisyon),r.komGercek?G1:T1)}${s("Kargo",dus(r.kargo),r.kargoGercek?G1:T1)}${r.hizmet?s("Hizmet bedeli",dus(r.hizmet),T1):""}${s("Stopaj",dus(r.stopajTL))}${s("Kalan",`<span class="${r.kalan<0?"eksi":""}">${tl(r.kalan)}</span>`,"","top")}</div>
+   <div class="dokum">${s("Satış",tl(r.brut))}${s("KDV",dus(r.kdvTL))}${s("Komisyon ("+yuzde(r.oran)+")",dus(r.komisyon))}${s("Kargo",dus(r.kargo))}${s("Hizmet bedeli",dus(r.hizmet))}${s("Stopaj",dus(r.stopajTL))}${s("Kalan",`<span class="${r.kalan<0?"eksi":""}">${tl(r.kalan)}</span>`,"","top")}</div>
    <button class="btn" id="sKapat">Kapat</button></div></div>`;
   const k=()=>{$("#katman").innerHTML=""};$("#sKapat").onclick=k;$("#perde").addEventListener("click",ev=>{if(ev.target.id==="perde")k()});
 }
@@ -748,14 +749,10 @@ function veriCiz(e){
     <div id="exEsle"></div>
   </details>
   <details class="kart" id="ayarlar"><summary><h2>Kesinti ayarları</h2></summary>
-    <h3>Kargo (KDV dahil, panelindeki tarife)</h3>
-    <div class="alanlar">${kargoS}${sayi("iadeKargo","İade kargosu TL",A.iadeKargo)}</div>
-    <p class="not">Trendyol bağlıyken gerçek kargo faturası bunların yerine geçer. Başlangıçtaki 80 TL örnektir.</p>
-    <label class="onay"><input type="checkbox" data-onay="kargo" ${A.onay.kargo?"checked":""}><span>Tarifemi panelden kontrol ettim</span></label>
+    <h3>Kargo (KDV dahil)</h3>
+    <div class="alanlar">${kargoS}</div>
     <h3>Kanal kesintileri</h3>
     <div class="tablo-kap"><table><thead><tr><th>Kanal</th><th>Komisyon %</th><th>Sabit TL</th><th>Hizmet TL/paket</th></tr></thead><tbody>${kanal}</tbody></table></div>
-    <p class="not">Trendyol'da gerçek komisyon her siparişten okunur. Başlangıç oranları örnektir, hizmet bedeli 0 girilidir.</p>
-    <label class="onay"><input type="checkbox" data-onay="komisyon" ${A.onay.komisyon?"checked":""}><span>Komisyon ve hizmet bedelimi panelden kontrol ettim</span></label>
     <div class="alanlar">${sayi("stopajOran","Stopaj %",A.stopajOran)}</div>
   </details>
   <details class="kart"><summary><h2>Yedek</h2></summary><p class="not">${n} sipariş satırı, ${Object.keys(D.urunler).length} ürün kayıtlı.</p>
