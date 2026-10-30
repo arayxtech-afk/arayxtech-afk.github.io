@@ -231,7 +231,8 @@ function satirlariHesapla(kalemler,urunler,A,kargolar){
     const hizmetPaket=+K.hizmet||0;
     const pay0=satirlar.length;
     for(const k of satirlar){
-      const u=urunler[k.sku]||urunler[k.barkod]||null;
+      /* Stok kodu birden çok üründe aynı olabilir; önce tekil olan barkoda bakılır */
+      const u=urunler[k.barkod]||urunler[k.sku]||null;
       const iade=k.durum==="iade";
       const brut=iade?0:(+k.brut||0);
       const pay=toplamBrut>0?brut/toplamBrut:(1/pay0);
@@ -283,7 +284,7 @@ const Depo={
   kopruYaz(v){try{localStorage.setItem("karCihaz:kopru",JSON.stringify(v))}catch(e){}}
 };
 const artifactte=!!window.claude;
-const D={ayar:JSON.parse(JSON.stringify(VARSAYILAN)),urunler:{},kalemler:{},kargolar:{},odemeler:{},hizmetFatura:{},sonCekim:null,yuklendi:false};
+const D={ayar:JSON.parse(JSON.stringify(VARSAYILAN)),urunler:{},kalemler:{},kargolar:{},odemeler:{},hizmetFatura:{},sonCekim:null,veriSurum:0,yuklendi:false};
 const G={sekme:"ozet",donem:"buay",kanal:"Hepsi",sipFiltre:"tum",urunAra:"",fiyatSku:"",fiyatKanal:"Trendyol",fiyat:"",fiyatKom:"",hedefMarj:"",kampanya:""};
 let yazZaman={};
 function yazErtele(ad,uret){clearTimeout(yazZaman[ad]);yazZaman[ad]=setTimeout(()=>{Depo.yaz(ad,uret()).catch(()=>uyar("Kaydedilemedi. İnternet bağlantını kontrol et."))},500)}
@@ -295,7 +296,7 @@ async function kalemleriKaydet(){
   for(const [a,liste] of Object.entries(aylar)){
     for(let i=0;i*600<liste.length;i++)await Depo.yaz("kalem_"+a+"_"+i,{k:liste.slice(i*600,(i+1)*600)});
   }
-  await Depo.yaz("finans",{kargolar:D.kargolar,odemeler:D.odemeler,hizmetFatura:D.hizmetFatura,sonCekim:D.sonCekim});
+  await Depo.yaz("finans",{kargolar:D.kargolar,odemeler:D.odemeler,hizmetFatura:D.hizmetFatura,sonCekim:D.sonCekim,veriSurum:D.veriSurum});
 }
 function ayAnahtar(ms){const t=new Date(ms);return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")}
 function birlestirAyar(a){
@@ -310,7 +311,7 @@ async function yukle(){
   if(h.urunler&&h.urunler.u)D.urunler=h.urunler.u;
   else if(window.BASLANGIC_URUNLER){window.BASLANGIC_URUNLER.forEach(u=>{D.urunler[u.sku]=u})}
   for(const [ad,v] of Object.entries(h)){if(ad.startsWith("kalem_")&&v.k)v.k.forEach(k=>{D.kalemler[k.id]=k})}
-  if(h.finans){D.kargolar=h.finans.kargolar||{};D.odemeler=h.finans.odemeler||{};D.hizmetFatura=h.finans.hizmetFatura||{};D.sonCekim=h.finans.sonCekim||null}
+  if(h.finans){D.kargolar=h.finans.kargolar||{};D.odemeler=h.finans.odemeler||{};D.hizmetFatura=h.finans.hizmetFatura||{};D.sonCekim=h.finans.sonCekim||null;D.veriSurum=h.finans.veriSurum||0}
   D.yuklendi=true;ciz();
 }
 /* ---------- Örnek veri: gerçek sipariş yokken ekranı göstermek için ---------- */
@@ -349,7 +350,8 @@ function donemAralik(d){
   const g=d==="7"?7:30;const s=b.getTime()-(g-1)*864e5;return {s,e:su.getTime(),os:s-g*864e5,oe:s,ad:"Son "+g+" gün",onAd:"önceki "+g+" gün"};
 }
 function marjRozet(m,A){return m<0?'<span class="rozet bad">▼ Zarar</span>':m<+A.kritikMarj?'<span class="rozet warn">! Düşük marj</span>':'<span class="rozet ok">✓ Kârlı</span>'}
-function urunAd(r){return (r.u&&r.u.ad)||r.k.ad||r.k.sku||r.k.barkod||"Bilinmeyen ürün"}
+function temizAd(s){return String(s||"").replace(/,\s*one size\s*$/i,"").trim()}
+function urunAd(r){return temizAd(r.k.ad)||(r.u&&r.u.ad)||r.k.sku||r.k.barkod||"Bilinmeyen ürün"}
 /* ---------- Sekmeler ---------- */
 const SEKME=[
  ["ozet","Özet",'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
@@ -391,10 +393,10 @@ function ozetCiz(e){
   const maks=Math.max(t.brut,Math.abs(t.net),1);
   const kopru=[["Ciro (KDV dahil)",t.brut,"ciro"],["Net KDV",-t.netKdv,""],["Komisyon",-t.komisyon,""],["Kargo",-t.kargo,""],["Hizmet bedeli",-t.hizmet,""],["Stopaj",-t.stopaj,""],["Üretim maliyeti",-t.uretim,""]];
   const urunMap={};
-  s.forEach(r=>{const a=r.k.sku||r.k.barkod;const m=urunMap[a]=urunMap[a]||{ad:urunAd(r),adet:0,net:0,brut:0,sku:a,eksik:r.maliyetEksik,kdvHaric:0};m.adet+=r.adet;m.net+=r.net;m.brut+=r.brut;m.kdvHaric+=r.kdvHaric});
+  s.forEach(r=>{const a=r.k.barkod||r.k.sku;const m=urunMap[a]=urunMap[a]||{ad:urunAd(r),adet:0,net:0,brut:0,sku:a,eksik:r.maliyetEksik,kdvHaric:0};m.adet+=r.adet;m.net+=r.net;m.brut+=r.brut;m.kdvHaric+=r.kdvHaric});
   const urunListe=Object.values(urunMap).sort((a,b)=>b.net-a.net);
   const zarar=urunListe.filter(u=>u.net<0);
-  const eksikMal=new Set(s.filter(r=>r.maliyetEksik).map(r=>r.k.sku||r.k.barkod));
+  const eksikMal=new Set(s.filter(r=>r.maliyetEksik).map(r=>r.k.barkod||r.k.sku));
   const tahminiKargo=s.filter(r=>!r.kargoGercek).length;
   const dik=[];
   if(zarar.length)dik.push(["bad","▼",`<b>${zarar.length} ürün zarar ediyor:</b> ${zarar.slice(0,3).map(u=>esc(u.ad)+" ("+tl0(u.net)+")").join(", ")}`]);
@@ -500,14 +502,14 @@ function urunlerCiz(e){
   const A=D.ayar;
   const liste=Object.values(D.urunler);
   const q=G.urunAra.toLocaleLowerCase("tr-TR");
-  const sat=liste.filter(u=>!q||(u.ad||"").toLocaleLowerCase("tr-TR").includes(q)||(u.sku||"").toLocaleLowerCase("tr-TR").includes(q)).map(u=>{const t=u.fiyat?fiyatTest(+u.fiyat,u,"Trendyol",A):null;return {u,t,var:maliyetVar(u)}});
+  const sat=liste.filter(u=>!q||(u.ad||"").toLocaleLowerCase("tr-TR").includes(q)||(u.sku||"").toLocaleLowerCase("tr-TR").includes(q)||(u.stok||"").toLocaleLowerCase("tr-TR").includes(q)).map(u=>{const t=u.fiyat?fiyatTest(+u.fiyat,u,"Trendyol",A):null;return {u,t,var:maliyetVar(u)}});
   sat.sort((a,b)=>(a.var-b.var)||((a.t?a.t.marj:0)-(b.t?b.t.marj:0)));
   const eksik=liste.filter(u=>!maliyetVar(u)).length;
   e.innerHTML=`
   <section class="kart"><div class="satirbas"><h2>Ürünler</h2><span class="not">${liste.length} ürün${eksik?" · "+eksik+" maliyetsiz":""}</span></div>
     <div class="alan"><label for="urunAra">Ara</label><input id="urunAra" type="search" value="${esc(G.urunAra)}" placeholder="Ad veya stok kodu"></div>
     ${liste.length?`<p class="not">Marj, Trendyol'da şu anki fiyatla ve panel ayarlarınla hesaplanır. Ürüne dokunup gram ve baskı süresini gir.</p>`:`<p class="not">Henüz ürün yok. Veri sekmesinden Trendyol'u bağla ya da sipariş Excel'i yükle; ürünler otomatik gelir.</p>`}
-    <div class="liste" id="urunListe">${sat.map(({u,t,var:v})=>`<button class="oge" data-urun="${esc(u.sku)}"><span><span class="ad">${esc(u.ad||u.sku)}</span><br><span class="kod">${esc(u.sku)}</span></span>
+    <div class="liste" id="urunListe">${sat.map(({u,t,var:v})=>`<button class="oge" data-urun="${esc(u.sku)}"><span><span class="ad">${esc(u.ad||u.sku)}</span><br><span class="kod">${esc(u.stok||u.sku)}</span></span>
       <span class="sag">${u.fiyat?tl(+u.fiyat):"fiyat yok"}<small>${v&&t?`net ${tl(t.net)} · ${yuzde(t.marj)}`:""}</small>${v&&t?marjRozet(t.marj,A):'<span class="rozet gri">maliyet gir</span>'}</span></button>`).join("")}</div>
   </section>`;
   $("#urunAra").addEventListener("input",ev=>{G.urunAra=ev.target.value;const p=ev.target.selectionStart;urunlerCiz(e);const i=$("#urunAra");i.focus();i.setSelectionRange(p,p)});
@@ -517,7 +519,7 @@ function urunLevha(sku){
   const A=D.ayar;
   const alan=(id,et,v,tip="number",adim="any")=>`<div class="alan"><label for="${id}">${et}</label><input id="${id}" type="${tip}" inputmode="decimal" step="${adim}" value="${esc(v==null?"":v)}"></div>`;
   $("#katman").innerHTML=`<div class="perde" id="perde"><div class="levha" role="dialog" aria-modal="true" aria-label="${esc(u.ad||u.sku)}">
-    <h2>${esc(u.ad||u.sku)}</h2><span class="kod mono not">${esc(u.sku)}${u.barkod?" · "+esc(u.barkod):""}</span>
+    <h2>${esc(u.ad||u.sku)}</h2><span class="kod mono not">${esc(u.stok||u.sku)}${u.barkod&&u.barkod!==u.stok?" · "+esc(u.barkod):""}</span>
     <div class="alanlar">
       ${alan("uGram","Gram (paket toplamı)",u.gram)}${alan("uSaat","Baskı süresi (saat)",u.saat)}${alan("uIsc","İşçilik (dakika)",u.iscilikDk)}${alan("uAmb","Ambalaj TL (boş: "+A.ambalaj+")",u.ambalaj)}
       ${alan("uFiyat","Satış fiyatı (KDV dahil)",u.fiyat)}${alan("uKom","Komisyon %",u.komisyon)}${alan("uDesi","Desi",u.desi)}${alan("uEl","Elle toplam maliyet TL",u.elMaliyet)}
@@ -650,7 +652,7 @@ function tyKalem(p,l,i){
   const adet=+l.quantity||1;
   if(l.discountDetails&&l.discountDetails.length){l.discountDetails.forEach(d=>{brut+=(+d.lineItemPrice||0)+(+d.lineItemTyDiscount||0)})}
   else brut=((+l.lineUnitPrice||0)+(+l.lineTyDiscount||0))*adet;
-  return {id:"TY-"+p.shipmentPackageId+"-"+(l.lineId||i),kanal:"Trendyol",paket:String(p.shipmentPackageId),siparisNo:String(p.orderNumber||""),tarih:+p.orderDate,durum:DURUM_TY[p.status]||DURUM_TY[l.orderLineItemStatusName]||"yolda",sku:l.stockCode||l.barcode||"",barkod:l.barcode||"",ad:l.productName||"",adet,brut:Math.round(brut*100)/100,kdvOran:l.vatRate!=null?+l.vatRate:null,komisyonOran:l.commission!=null?+l.commission:null,desi:+p.cargoDeci||null,kaynak:"api"};
+  return {id:"TY-"+p.shipmentPackageId+"-"+(l.lineId||i),kanal:"Trendyol",paket:String(p.shipmentPackageId),siparisNo:String(p.orderNumber||""),tarih:+p.orderDate,durum:DURUM_TY[p.status]||DURUM_TY[l.orderLineItemStatusName]||"yolda",sku:l.barcode||l.stockCode||"",stok:l.stockCode||"",barkod:l.barcode||"",ad:temizAd(l.productName),adet,brut:Math.round(brut*100)/100,kdvOran:l.vatRate!=null?+l.vatRate:null,komisyonOran:l.commission!=null?+l.commission:null,desi:+p.cargoDeci||null,kaynak:"api"};
 }
 async function siparisAl(s,e,siparisPaket){
   let n=0;
@@ -660,7 +662,7 @@ async function siparisAl(s,e,siparisPaket){
     (p.lines||[]).forEach((l,i)=>{
       const k=tyKalem(p,l,i);const es=D.kalemler[k.id];
       D.kalemler[k.id]=es?{...es,...k,komisyonTL:es.komisyonTL}:k;n++;
-      const sku=k.sku;if(sku){const o=D.urunler[sku]||{sku,ad:k.ad,barkod:k.barkod};if(k.komisyonOran!=null)o.komisyon=k.komisyonOran;if(k.kdvOran!=null)o.kdv=k.kdvOran;D.urunler[sku]=o}
+      const sku=k.sku;if(sku){const o=D.urunler[sku]||{sku,stok:k.stok,ad:k.ad,barkod:k.barkod};if(k.komisyonOran!=null)o.komisyon=k.komisyonOran;if(k.kdvOran!=null)o.kdv=k.kdvOran;D.urunler[sku]=o}
     });
   });
   return n;
@@ -670,18 +672,28 @@ async function trendyolCek(gun,dur){
   const pencere=[];for(let s=bas;s<su;s+=dilim)pencere.push([s,Math.min(s+dilim,su)]);
   dur("Ürünler alınıyor");
   const urunler=await sayfaliCek("/urunler",{},100);
+  /* Ürün kimliği barkoddur. Stok koduyla kayıtlı eski satırın maliyeti, kod tek üründeyse barkoda taşınır. */
+  const stokSay={};const guncel=new Set();const tasinan=new Set();
+  urunler.forEach(c=>(c.variants||[]).forEach(v=>{if(v.stockCode)stokSay[v.stockCode]=(stokSay[v.stockCode]||0)+1}));
   urunler.forEach(c=>(c.variants||[]).forEach(v=>{
-    const sku=v.stockCode||v.barcode;if(!sku)return;
+    const sku=v.barcode||v.stockCode;if(!sku)return;
     const o=D.urunler[sku]||{sku};
-    o.ad=c.title||o.ad;o.barkod=v.barcode||o.barkod;o.kdv=v.vatRate!=null?+v.vatRate:o.kdv;
+    const eski=v.stockCode&&v.stockCode!==sku&&stokSay[v.stockCode]===1?D.urunler[v.stockCode]:null;
+    if(eski){["gram","saat","iscilikDk","ambalaj","elMaliyet","desi"].forEach(a=>{if(o[a]==null&&eski[a]!=null)o[a]=eski[a]});tasinan.add(v.stockCode)}
+    o.ad=c.title||o.ad;o.stok=v.stockCode||o.stok;o.barkod=v.barcode||o.barkod;o.kdv=v.vatRate!=null?+v.vatRate:o.kdv;
     const fy=v.price&&v.price.salePrice;if(fy!=null)o.fiyat=+fy;
-    D.urunler[sku]=o;
+    D.urunler[sku]=o;guncel.add(sku);
   }));
   let n=0;
   const siparisPaket={};
   for(const [s,e] of pencere){
     dur("Siparişler alınıyor ("+n+")");
     n+=await siparisAl(s,e,siparisPaket);
+  }
+  /* Mağazada ve siparişlerde karşılığı kalmayan, maliyet girilmemiş eski satırlar listeden çıkar */
+  if(guncel.size){
+    const kullanilan=new Set();Object.values(D.kalemler).forEach(k=>{kullanilan.add(k.sku);kullanilan.add(k.barkod)});
+    Object.keys(D.urunler).forEach(a=>{if(!guncel.has(a)&&!kullanilan.has(a)&&(tasinan.has(a)||!maliyetVar(D.urunler[a])))delete D.urunler[a]});
   }
   /* Hakediş ya da kargo adımı hata verirse siparişler kaybolmasın */
   await Depo.yaz("urunler",{u:D.urunler});
@@ -721,6 +733,7 @@ async function trendyolCek(gun,dur){
     }
   }
   Object.assign(D.hizmetFatura,hizmet);
+  D.veriSurum=VERI_SURUM;
   D.sonCekim=Date.now();
   dur("Kaydediliyor");
   await Depo.yaz("urunler",{u:D.urunler});
@@ -732,6 +745,8 @@ async function trendyolCek(gun,dur){
    Sadece ekler ve günceller; hata olursa eldeki veriye dokunmaz. */
 const OTO={son:0,calisiyor:null,durdu:false,hata:"",kismi:"",basari:0,tamDeneme:0};
 const OTO_ARALIK=5*6e4,OTO_DONUS=2*6e4,OTO_TAM=24*36e5,OTO_TAM_TEKRAR=36e5;
+/* Kayıt biçimi değişince eski siparişler ilk açılışta baştan çekilir */
+const VERI_SURUM=2;
 function otoHazir(){const K=Depo.kopruAl();return !artifactte&&!!K.adres&&!!K.kod&&!OTO.durdu&&document.visibilityState==="visible"&&D.yuklendi}
 function imza(){return Object.values(D.kalemler).map(k=>k.id+"|"+k.durum+"|"+k.komisyonTL).sort().join(";")}
 function otoYenile(esik){
@@ -742,7 +757,7 @@ function otoYenile(esik){
     let tamOldu=false;
     try{
       const su=Date.now();
-      if(su-(D.sonCekim||0)>=OTO_TAM&&su-OTO.tamDeneme>=OTO_TAM_TEKRAR){
+      if((D.veriSurum!==VERI_SURUM||su-(D.sonCekim||0)>=OTO_TAM)&&su-OTO.tamDeneme>=OTO_TAM_TEKRAR){
         OTO.tamDeneme=su;
         try{await trendyolCek(30,()=>{});tamOldu=true;OTO.kismi=""}
         catch(x){if(x.yetki)throw x;OTO.kismi="Komisyon ve kargo faturası alınamadı: "+x.message}
@@ -925,7 +940,7 @@ function excelEsleCiz(){
   $("#exAl").onclick=async()=>{
     const {c}=excelCevir(ex,$("#exKanal").value);
     if(!c.length){uyar("Okunacak satır yok. Tarih ve tutar sütununu seç.");return}
-    c.forEach(k=>{D.kalemler[k.id]=k;if(k.sku){const o=D.urunler[k.sku]||{sku:k.sku,ad:k.ad,barkod:k.barkod};if(k.komisyonOran!=null&&k.kanal==="Trendyol")o.komisyon=k.komisyonOran;if(!o.fiyat&&k.adet)o.fiyat=Math.round(k.brut/k.adet*100)/100;D.urunler[k.sku]=o}});
+    c.forEach(k=>{D.kalemler[k.id]=k;const an=k.kanal==="Trendyol"&&k.barkod?k.barkod:k.sku;if(an){const o=D.urunler[an]||{sku:an,stok:k.sku,ad:k.ad,barkod:k.barkod};if(k.komisyonOran!=null&&k.kanal==="Trendyol")o.komisyon=k.komisyonOran;if(!o.fiyat&&k.adet)o.fiyat=Math.round(k.brut/k.adet*100)/100;D.urunler[an]=o}});
     await Depo.yaz("urunler",{u:D.urunler});await kalemleriKaydet();exDurum=null;uyar(c.length+" satır eklendi.");G.sekme="ozet";ciz();
   };
 }
