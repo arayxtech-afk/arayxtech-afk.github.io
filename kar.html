@@ -133,10 +133,20 @@ tr:last-child td{border-bottom:0}
 .ger{font:600 .66rem/1 var(--mono);color:var(--ok);margin-left:4px}
 .onay{display:flex;gap:10px;align-items:flex-start;font-size:.92rem}
 .onay input{width:20px;height:20px;flex:none;margin-top:2px}
-.sekmeler{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.sekmeler{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 .sekme{background:none;border:0;padding:9px 2px 8px;display:grid;justify-items:center;gap:3px;font:600 .72rem/1 var(--body);color:var(--muted);cursor:pointer;min-height:58px}
 .sekme svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .sekme[aria-current="page"]{color:var(--scan)}
+.disli{background:none;border:0;padding:6px;cursor:pointer;color:var(--muted);display:flex;min-width:40px;min-height:40px;align-items:center;justify-content:center}
+.disli svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.ust .etiket{margin-left:auto}
+.geri{justify-self:start;background:none;border:0;color:var(--scan);font-weight:600;cursor:pointer;padding:4px 0;min-height:36px}
+.hero .cumle{font-size:1rem;color:var(--hero-muted)}
+details.kart>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:32px}
+details.kart>summary::-webkit-details-marker{display:none}
+details.kart>summary::after{content:"+";font:600 1.3rem/1 var(--mono);color:var(--muted)}
+details.kart[open]>summary::after{content:"\2212"}
+.sonuc{font:700 2.1rem/1.1 var(--display);color:var(--head)}
 .perde{position:fixed;inset:0;background:var(--scrim);z-index:20;display:flex;align-items:flex-end;justify-content:center}
 .levha{background:var(--surface);width:100%;max-width:560px;max-height:90%;overflow-y:auto;border-radius:14px 14px 0 0;padding:16px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));display:grid;gap:12px}
 @media (min-width:640px){.perde{align-items:center}.levha{border-radius:14px}}
@@ -153,6 +163,7 @@ tr:last-child td{border-bottom:0}
   <svg viewBox="0 0 170 170" aria-hidden="true"><path d="M27,153 L77,13 L99,13 L147,153 L121,153 L88,51 L53,153 Z" fill="var(--head)"/><path d="M7,163 Q71,113 163,71 Q85,125 7,163 Z" fill="var(--scan)"/></svg>
   <h1>Kâr Paneli</h1>
   <span class="etiket" id="ustEtiket"></span>
+  <button class="disli" data-sekme="veri" aria-label="Ayarlar ve veri"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"/></svg></button>
 </header>
 <main id="ekran" aria-live="polite"></main>
 <nav class="sekmeler" id="sekmeler" aria-label="Bölümler"></nav>
@@ -349,16 +360,14 @@ function donemAralik(d){
   if(d==="gecenay"){const s=new Date(su.getFullYear(),su.getMonth()-1,1);const e=new Date(su.getFullYear(),su.getMonth(),1);return {s:s.getTime(),e:e.getTime(),os:new Date(su.getFullYear(),su.getMonth()-2,1).getTime(),oe:s.getTime(),ad:"Geçen ay",onAd:"önceki ay"}}
   const g=d==="7"?7:30;const s=b.getTime()-(g-1)*864e5;return {s,e:su.getTime(),os:s-g*864e5,oe:s,ad:"Son "+g+" gün",onAd:"önceki "+g+" gün"};
 }
-function marjRozet(m,A){return m<0?'<span class="rozet bad">▼ Zarar</span>':m<+A.kritikMarj?'<span class="rozet warn">! Düşük marj</span>':'<span class="rozet ok">✓ Kârlı</span>'}
+function marjRozet(m,A){return m<0?'<span class="rozet bad">▼ Zarar</span>':m<+A.kritikMarj?'<span class="rozet warn">! Az kalıyor</span>':'<span class="rozet ok">✓ Kârlı</span>'}
 function temizAd(s){return String(s||"").replace(/,\s*one size\s*$/i,"").trim()}
 function urunAd(r){return temizAd(r.k.ad)||(r.u&&r.u.ad)||r.k.sku||r.k.barkod||"Bilinmeyen ürün"}
 /* ---------- Sekmeler ---------- */
 const SEKME=[
  ["ozet","Özet",'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
  ["urunler","Ürünler",'<path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8"/>'],
- ["fiyat","Fiyat",'<path d="M20 12l-8 8-9-9V3h8zM7.5 7.5h.01"/>'],
- ["siparis","Siparişler",'<path d="M4 6h16M4 12h16M4 18h10"/>'],
- ["veri","Veri",'<path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>']];
+ ["fiyat","Hesapla",'<path d="M20 12l-8 8-9-9V3h8zM7.5 7.5h.01"/>']];
 function sekmeCiz(){
   $("#sekmeler").innerHTML=SEKME.map(([id,ad,ik])=>`<button class="sekme" data-sekme="${id}" ${G.sekme===id?'aria-current="page"':""}><svg viewBox="0 0 24 24" aria-hidden="true">${ik}</svg>${ad}</button>`).join("");
 }
@@ -375,7 +384,8 @@ function ciz(){
   const e=$("#ekran");
   ({ozet:ozetCiz,urunler:urunlerCiz,fiyat:fiyatCiz,siparis:siparisCiz,veri:veriCiz})[G.sekme](e);
 }
-function ornekBant(){return `<div class="bant warn"><span><b>Örnek veri.</b> Bu rakamlar senin satışların değil. Siparişlerini yükleyince kaybolur.</span><button class="btn kucuk" data-git="veri">Siparişleri yükle</button></div>`}
+function ornekBant(){return `<div class="bant warn"><span><b>Örnek rakamlar.</b> Bunlar senin satışların değil.</span><button class="btn kucuk" data-git="veri">Mağazamı bağla</button></div>`}
+function geri(){return `<button class="geri" data-sekme="ozet">← Özet</button>`}
 function teyitBant(A){
   const eksik=[];if(!A.onay.uretim)eksik.push("üretim maliyeti");if(!A.onay.kargo)eksik.push("kargo tarifesi");if(!A.onay.komisyon)eksik.push("komisyon ve hizmet bedeli");
   return eksik.length?`<div class="bant warn"><span><b>Teyit bekliyor:</b> ${eksik.join(", ")} şimdilik örnek değerle hesaplanıyor.</span><button class="btn kucuk ikinci" data-git="veri" data-odak="ayarlar">Ayarlara git</button></div>`:"";
@@ -389,9 +399,8 @@ function ozetCiz(e){
   const on=hepsi.filter(r=>r.k.tarih>=ar.os&&r.k.tarih<ar.oe);
   const t=topla(s),to=topla(on);
   const kanallar=["Hepsi",...new Set(kalemler.map(k=>k.kanal))];
-  const fark=on.length?t.net-to.net:null;
   const maks=Math.max(t.brut,Math.abs(t.net),1);
-  const kopru=[["Ciro (KDV dahil)",t.brut,"ciro"],["Net KDV",-t.netKdv,""],["Komisyon",-t.komisyon,""],["Kargo",-t.kargo,""],["Hizmet bedeli",-t.hizmet,""],["Stopaj",-t.stopaj,""],["Üretim maliyeti",-t.uretim,""]];
+  const kopru=[["Satış",t.brut,"ciro"],["Pazaryeri kesintisi",-(t.komisyon+t.hizmet),""],["Kargo",-t.kargo,""],["Vergi",-(t.netKdv+t.stopaj),""],["Üretim",-t.uretim,""]];
   const urunMap={};
   s.forEach(r=>{const a=r.k.barkod||r.k.sku;const m=urunMap[a]=urunMap[a]||{ad:urunAd(r),adet:0,net:0,brut:0,sku:a,eksik:r.maliyetEksik,kdvHaric:0};m.adet+=r.adet;m.net+=r.net;m.brut+=r.brut;m.kdvHaric+=r.kdvHaric});
   const urunListe=Object.values(urunMap).sort((a,b)=>b.net-a.net);
@@ -399,46 +408,34 @@ function ozetCiz(e){
   const eksikMal=new Set(s.filter(r=>r.maliyetEksik).map(r=>r.k.barkod||r.k.sku));
   const tahminiKargo=s.filter(r=>!r.kargoGercek).length;
   const dik=[];
-  if(zarar.length)dik.push(["bad","▼",`<b>${zarar.length} ürün zarar ediyor:</b> ${zarar.slice(0,3).map(u=>esc(u.ad)+" ("+tl0(u.net)+")").join(", ")}`]);
-  urunListe.filter(u=>u.net>=0&&u.kdvHaric>0&&u.net/u.kdvHaric*100<+A.kritikMarj).slice(0,2).forEach(u=>dik.push(["warn","!",`<b>${esc(u.ad)}</b> marjı ${yuzde(u.net/u.kdvHaric*100)}, sınırın altında.`]));
-  if(eksikMal.size)dik.push(["warn","!",`<b>${eksikMal.size} üründe maliyet yok.</b> Net kâr gerçekte daha düşük. <button class="btn kucuk ikinci" data-git="urunler">Maliyet gir</button>`]);
-  if(t.iade)dik.push(["warn","↩",`<b>${t.iade} iade</b> bu dönemde. Gidiş ve dönüş kargosu kârdan düşüldü.`]);
-  if(tahminiKargo&&s.length&&!ornek)dik.push(["warn","~",`${tahminiKargo} satırda kargo tahmini. Gerçek tutar kargo faturası gelince yazılır.`]);
+  if(zarar.length)dik.push(["bad","▼",`<b>Zarar edenler:</b> ${zarar.slice(0,5).map(u=>esc(u.ad)+" ("+tl0(u.net)+")").join(", ")}`]);
+  if(eksikMal.size)dik.push(["warn","!",`${eksikMal.size} üründe maliyet yok, gerçek kâr biraz daha az.`]);
   const kontrol=kontrolBul(s);
-  if(kontrol.length)dik.push(["bad","⚑",`<b>${kontrol.length} kesinti farkı</b> bulundu. <button class="btn kucuk ikinci" data-sipf="kontrol">İncele</button>`]);
-  if(!dik.length&&s.length)dik.push(["ok","✓","Bu dönemde zarar eden ürün yok."]);
+  if(kontrol.length)dik.push(["bad","⚑",`Trendyol ${kontrol.length} siparişte fazla kesmiş olabilir. <button class="btn kucuk ikinci" data-sipf="kontrol">Gör</button>`]);
+  if(!dik.length&&s.length)dik.push(["ok","✓","Zarar eden ürün yok."]);
   const yaklasan=yaklasanOdeme();
   e.innerHTML=`
-  ${ornek?ornekBant():teyitBant(A)}
-  <div class="cipler" role="group" aria-label="Dönem">${[["buay","Bu ay"],["gecenay","Geçen ay"],["7","7 gün"],["30","30 gün"]].map(([d,a])=>`<button class="cip" data-donem="${d}" aria-pressed="${G.donem===d}">${a}</button>`).join("")}</div>
+  ${ornek?ornekBant():""}
+  <div class="cipler" role="group" aria-label="Dönem">${[["buay","Bu ay"],["gecenay","Geçen ay"]].map(([d,a])=>`<button class="cip" data-donem="${d}" aria-pressed="${G.donem===d}">${a}</button>`).join("")}</div>
   ${kanallar.length>2?`<div class="cipler" role="group" aria-label="Kanal">${kanallar.map(k=>`<button class="cip" data-kanal="${esc(k)}" aria-pressed="${G.kanal===k}">${esc(k)}</button>`).join("")}</div>`:""}
   <section class="hero">
-    <span class="ad">NET KÂR · ${esc(ar.ad).toLocaleUpperCase("tr-TR")}</span>
+    <span class="ad">CEBİNE KALAN · ${esc(ar.ad).toLocaleUpperCase("tr-TR")}</span>
     <div class="deger">${tl0(t.net)}</div>
-    <div class="alt">
-      <div><b>${yuzde(t.marj)}</b><span>Net marj</span></div>
-      <div><b>${fmt0.format(t.paket)}</b><span>Sipariş</span></div>
-      <div><b>${fmt0.format(t.adet)}</b><span>Satılan adet</span></div>
-      <div><b>${fark==null?"-":(fark>=0?"+":"")+tl0(fark)}</b><span>${esc(ar.onAd)} farkı</span></div>
-    </div>
+    <p class="cumle">${fmt0.format(t.paket)} siparişten ${tl0(t.brut)} satış yaptın.</p>
   </section>
-  <div class="iki">
-    <section class="kart"><h2>Para nereye gitti</h2>
-      ${s.length?`<div class="kopru">${kopru.map(([a,v,c])=>`<div class="s ${c}"><span>${a}</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(v)/maks*100}%"></div></div><span class="tut">${v<0?"-":""}${tl0(Math.abs(v))}</span></div>`).join("")}<div class="s net ${t.net<0?"eksi":""}"><span>Net kâr</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(t.net)/maks*100}%"></div></div><span class="tut">${tl0(t.net)}</span></div></div>`:`<p class="not">Bu dönemde sipariş yok.</p>`}
-    </section>
-    <section class="kart"><h2>Dikkat</h2><div class="dikkat">${dik.map(([c,i,m])=>`<div class="d ${c}"><span aria-hidden="true">${i}</span><span>${m}</span></div>`).join("")||'<p class="not">Bu dönemde sipariş yok.</p>'}</div></section>
-  </div>
-  <section class="kart"><div class="satirbas"><h2>Günlük net kâr</h2><span class="not">Üstü kâr, altı zarar</span></div>${gunlukGrafik(s,ar)}</section>
-  <div class="iki">
-    <section class="kart"><h2>En çok kazandıranlar</h2>${urunTablo(urunListe.slice(0,5))}</section>
-    <section class="kart"><h2>En az kazandıranlar</h2>${urunTablo(urunListe.slice(-5).reverse())}</section>
-  </div>
-  ${yaklasan.length?`<section class="kart"><h2>Yatacak para</h2><div class="tablo-kap"><table><thead><tr><th>Vade</th><th class="r">Tutar</th></tr></thead><tbody>${yaklasan.map(y=>`<tr><td>${tarihYaz(y.t)}</td><td class="r">${tl(y.tutar)}</td></tr>`).join("")}</tbody></table></div></section>`:""}`;
+  ${dik.length?`<section class="kart"><div class="dikkat">${dik.map(([c,i,m])=>`<div class="d ${c}"><span aria-hidden="true">${i}</span><span>${m}</span></div>`).join("")}</div></section>`:""}
+  <section class="kart"><h2>En çok kazandıranlar</h2>${urunTablo(urunListe.slice(0,5))}</section>
+  <section class="kart"><h2>Paran nereye gitti</h2>
+    ${s.length?`<div class="kopru">${kopru.map(([a,v,c])=>`<div class="s ${c}"><span>${a}</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(v)/maks*100}%"></div></div><span class="tut">${v<0?"-":""}${tl0(Math.abs(v))}</span></div>`).join("")}<div class="s net ${t.net<0?"eksi":""}"><span>Cebine kalan</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(t.net)/maks*100}%"></div></div><span class="tut">${tl0(t.net)}</span></div></div>`:`<p class="not">Bu dönemde sipariş yok.</p>`}
+  </section>
+  <button class="btn ikinci" data-sipf="tum">Tüm siparişleri gör</button>
+  <details class="kart"><summary><h2>Günlük grafik</h2></summary>${gunlukGrafik(s,ar)}</details>
+  ${yaklasan.length?`<details class="kart"><summary><h2>Yatacak para</h2></summary><div class="tablo-kap"><table><thead><tr><th>Tarih</th><th class="r">Tutar</th></tr></thead><tbody>${yaklasan.map(y=>`<tr><td>${tarihYaz(y.t)}</td><td class="r">${tl(y.tutar)}</td></tr>`).join("")}</tbody></table></div></details>`:""}`;
   grafikBagla(e);
 }
 function urunTablo(l){
   if(!l.length)return '<p class="not">Bu dönemde satış yok.</p>';
-  return `<div class="tablo-kap"><table><thead><tr><th>Ürün</th><th class="r">Adet</th><th class="r">Net kâr</th></tr></thead><tbody>${l.map(u=>`<tr><td>${esc(u.ad)}${u.eksik?' <span class="rozet warn">maliyet yok</span>':""}</td><td class="r">${u.adet}</td><td class="r ${u.net<0?"eksi":""}">${tl0(u.net)}</td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="tablo-kap"><table><thead><tr><th>Ürün</th><th class="r">Adet</th><th class="r">Kalan</th></tr></thead><tbody>${l.map(u=>`<tr><td>${esc(u.ad)}${u.eksik?' <span class="rozet warn">maliyet yok</span>':""}</td><td class="r">${u.adet}</td><td class="r ${u.net<0?"eksi":""}">${tl0(u.net)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 function gunlukGrafik(s,ar){
   if(!s.length)return '<p class="not">Bu dönemde sipariş yok.</p>';
@@ -506,11 +503,11 @@ function urunlerCiz(e){
   sat.sort((a,b)=>(a.var-b.var)||((a.t?a.t.marj:0)-(b.t?b.t.marj:0)));
   const eksik=liste.filter(u=>!maliyetVar(u)).length;
   e.innerHTML=`
-  <section class="kart"><div class="satirbas"><h2>Ürünler</h2><span class="not">${liste.length} ürün${eksik?" · "+eksik+" maliyetsiz":""}</span></div>
+  <section class="kart"><h2>Ürünler</h2><p class="not">Her üründe tanesinden cebine ne kaldığını gösterir.</p>
     <div class="alan"><label for="urunAra">Ara</label><input id="urunAra" type="search" value="${esc(G.urunAra)}" placeholder="Ad veya stok kodu"></div>
-    ${liste.length?`<p class="not">Marj, Trendyol'da şu anki fiyatla ve panel ayarlarınla hesaplanır. Ürüne dokunup gram ve baskı süresini gir.</p>`:`<p class="not">Henüz ürün yok. Veri sekmesinden Trendyol'u bağla ya da sipariş Excel'i yükle; ürünler otomatik gelir.</p>`}
-    <div class="liste" id="urunListe">${sat.map(({u,t,var:v})=>`<button class="oge" data-urun="${esc(u.sku)}"><span><span class="ad">${esc(u.ad||u.sku)}</span><br><span class="kod">${esc(u.stok||u.sku)}${u.otoMaliyet?" · maliyet otomatik":""}</span></span>
-      <span class="sag">${u.fiyat?tl(+u.fiyat):"fiyat yok"}<small>${v&&t?`net ${tl(t.net)} · ${yuzde(t.marj)}`:""}</small>${v&&t?marjRozet(t.marj,A):'<span class="rozet gri">maliyet gir</span>'}</span></button>`).join("")}</div>
+    ${liste.length?"":`<p class="not">Henüz ürün yok. Sağ üstteki ayarlardan mağazanı bağla.</p>`}
+    <div class="liste" id="urunListe">${sat.map(({u,t,var:v})=>`<button class="oge" data-urun="${esc(u.sku)}"><span><span class="ad">${esc(u.ad||u.sku)}</span><br><span class="kod">${u.fiyat?tl(+u.fiyat)+" satış":"fiyat yok"}</span></span>
+      <span class="sag">${v&&t?`<span class="${t.net<0?"eksi":""}">${tl0(t.net)}</span><small>tanesinden</small>`:""}${v&&t?marjRozet(t.marj,A):'<span class="rozet gri">maliyet yok</span>'}</span></button>`).join("")}</div>
   </section>`;
   $("#urunAra").addEventListener("input",ev=>{G.urunAra=ev.target.value;const p=ev.target.selectionStart;urunlerCiz(e);const i=$("#urunAra");i.focus();i.setSelectionRange(p,p)});
 }
@@ -519,23 +516,21 @@ function urunLevha(sku){
   const A=D.ayar;
   const alan=(id,et,v,tip="number",adim="any")=>`<div class="alan"><label for="${id}">${et}</label><input id="${id}" type="${tip}" inputmode="decimal" step="${adim}" value="${esc(v==null?"":v)}"></div>`;
   $("#katman").innerHTML=`<div class="perde" id="perde"><div class="levha" role="dialog" aria-modal="true" aria-label="${esc(u.ad||u.sku)}">
-    <h2>${esc(u.ad||u.sku)}</h2><span class="kod mono not">${esc(u.stok||u.sku)}${u.barkod&&u.barkod!==u.stok?" · "+esc(u.barkod):""}</span>
-    <div class="alanlar">
-      ${alan("uGram","Gram (paket toplamı)",u.gram)}${alan("uSaat","Baskı süresi (saat)",u.saat)}${alan("uIsc","İşçilik (dakika)",u.iscilikDk)}${alan("uAmb","Ambalaj TL (boş: "+A.ambalaj+")",u.ambalaj)}
-      ${alan("uFiyat","Satış fiyatı (KDV dahil)",u.fiyat)}${alan("uKom","Komisyon %",u.komisyon)}${alan("uDesi","Desi",u.desi)}${alan("uEl","Elle toplam maliyet TL",u.elMaliyet)}
-    </div>
-    <p class="not" id="uOtoNot">${u.otoMaliyet?"Gram ve süre STL dosyasından Bambu Studio ile hesaplandı. Sana hiçbir şey girmek düşmüyor; gerçeği farklıysa üstüne yazman yeterli.":"Elle maliyet girersen gram ve süre hesaba katılmaz."}</p>
+    <h2>${esc(u.ad||u.sku)}</h2>
+    ${alan("uFiyat","Satış fiyatı TL",u.fiyat)}
     <div class="dokum" id="uSonuc"></div>
-    <div class="sira"><button class="btn" id="uKapat">Bitti</button><button class="btn ikinci" id="uFiyatGit">Fiyat sekmesinde aç</button></div>
+    <details><summary>Maliyeti değiştir</summary>
+      <p class="not" id="uOtoNot" style="margin-block:6px">${u.otoMaliyet?"Gram ve süre STL dosyasından hesaplandı. Dokunmana gerek yok.":"Gram ve baskı süresini yazman yeterli."}</p>
+      <div class="alanlar">${alan("uGram","Gram",u.gram)}${alan("uSaat","Baskı süresi (saat)",u.saat)}${alan("uIsc","İşçilik (dakika)",u.iscilikDk)}${alan("uAmb","Ambalaj TL",u.ambalaj)}${alan("uKom","Komisyon %",u.komisyon)}${alan("uDesi","Desi",u.desi)}${alan("uEl","Toplam maliyeti biliyorsan TL",u.elMaliyet)}</div>
+    </details>
+    <div class="sira"><button class="btn" id="uKapat">Bitti</button><button class="btn ikinci" id="uFiyatGit">Fiyatı dene</button></div>
   </div></div>`;
   const oku=()=>{const n=id=>{const v=$("#"+id).value;return v===""?null:+v};
     u.gram=n("uGram");u.saat=n("uSaat");u.iscilikDk=n("uIsc");u.ambalaj=n("uAmb");u.fiyat=n("uFiyat");u.komisyon=n("uKom");u.desi=n("uDesi");u.elMaliyet=n("uEl");u.otoMaliyet=false;urunlerKaydet();sonuc()};
   const sonuc=()=>{
     const m=birimMaliyet(u,A);const f=+u.fiyat||0;
-    const t=f?fiyatTest(f,u,"Trendyol",A):null;const p=fiyatBul(+A.hedefMarj,u,"Trendyol",A);
-    $("#uSonuc").innerHTML=`<div class="s"><span>Filament (fire dahil)</span><span>${tl(m.fil)}</span></div><div class="s"><span>Makine</span><span>${tl(m.mak)}</span></div><div class="s"><span>İşçilik</span><span>${tl(m.isc)}</span></div><div class="s"><span>Ambalaj</span><span>${tl(m.amb)}</span></div><div class="s top"><span>Üretim maliyeti</span><span>${tl(m.toplam)}</span></div>
-    ${t?`<div class="s top"><span>Trendyol net kâr</span><span class="${t.net<0?"eksi":""}">${tl(t.net)} (${yuzde(t.marj)})</span></div>`:""}
-    ${p&&maliyetVar(u)?`<div class="s"><span>%${A.hedefMarj} marj için fiyat</span><span>${tl(p)}</span></div>`:""}`;
+    const t=f?fiyatTest(f,u,"Trendyol",A):null;
+    $("#uSonuc").innerHTML=`<div class="s"><span>Üretim maliyeti</span><span>${tl(m.toplam)}</span></div>${t?`<div class="s top"><span>Tanesinden cebine kalan</span><span class="${t.net<0?"eksi":""}">${tl(t.net)}</span></div>`:""}`;
   };
   $("#katman").querySelectorAll("input").forEach(i=>i.addEventListener("input",oku));sonuc();
   const kapat=()=>{$("#katman").innerHTML="";ciz()};
@@ -556,34 +551,29 @@ function fiyatCiz(e){
   const hedef=G.hedefMarj===""?+A.hedefMarj:+G.hedefMarj;
   const oner=fiyatBul(hedef,u,G.fiyatKanal,A,kom);
   const satir=(a,v,c="")=>`<div class="s ${c}"><span>${a}</span><span>${v}</span></div>`;
-  const kosu=[5,10,15,20,30].map(d=>{const p=f*(1-d/100);const r=fiyatTest(p,u,G.fiyatKanal,A,kom);return {d,p,r}});
   const kamp=+G.kampanya||0;const kr=kamp?fiyatTest(kamp,u,G.fiyatKanal,A,kom):null;
-  const karar=m=>m<0?'<span class="rozet bad">▼ Katılma</span>':m<+A.kritikMarj?'<span class="rozet warn">! Marj düşük</span>':'<span class="rozet ok">✓ Katılabilirsin</span>';
+  const karar=m=>m<0?'<span class="rozet bad">▼ Katılma</span>':m<+A.kritikMarj?'<span class="rozet warn">! Az kalıyor</span>':'<span class="rozet ok">✓ Katıl</span>';
   e.innerHTML=`
-  ${!maliyetVar(u)?`<div class="bant warn"><span><b>Bu üründe maliyet yok.</b> Sonuç üretim maliyetini içermiyor.</span><button class="btn kucuk" data-urun="${esc(u.sku)}">Maliyet gir</button></div>`:""}
-  <section class="kart"><h2>Fiyat hesapla</h2>
-    <div class="alanlar">
-      <div class="alan" style="grid-column:1/-1"><label for="fUrun">Ürün</label><select id="fUrun">${ornek?`<option>${esc(u.ad)}</option>`:liste.map(x=>`<option value="${esc(x.sku)}" ${x.sku===u.sku?"selected":""}>${esc(x.ad||x.sku)}</option>`).join("")}</select></div>
-      <div class="alan"><label for="fKanal">Kanal</label><select id="fKanal">${Object.keys(A.kanallar).map(k=>`<option ${k===G.fiyatKanal?"selected":""}>${esc(k)}</option>`).join("")}</select></div>
-      <div class="alan"><label for="fFiyat">Satış fiyatı TL</label><input id="fFiyat" type="number" inputmode="decimal" step="any" value="${esc(G.fiyat)}"></div>
-      <div class="alan"><label for="fKom">Komisyon % (boş: kayıtlı)</label><input id="fKom" type="number" inputmode="decimal" step="any" value="${esc(G.fiyatKom)}"></div>
-      <div class="alan"><label for="fHedef">Hedef net marj %</label><input id="fHedef" type="number" inputmode="decimal" step="any" value="${esc(hedef)}"></div>
-    </div>
+  <section class="kart"><h2>Bu fiyata satarsam ne kalır?</h2>
+    <div class="alan"><label for="fUrun">Ürün</label><select id="fUrun">${ornek?`<option>${esc(u.ad)}</option>`:liste.map(x=>`<option value="${esc(x.sku)}" ${x.sku===u.sku?"selected":""}>${esc(x.ad||x.sku)}</option>`).join("")}</select></div>
+    <div class="alan"><label for="fFiyat">Satış fiyatı TL</label><input id="fFiyat" type="number" inputmode="decimal" step="any" value="${esc(G.fiyat)}"></div>
+    ${t?`<div class="satirbas"><span class="sonuc ${t.net<0?"eksi":""}">${tl(t.net)} kalır</span>${marjRozet(t.marj,A)}</div>`:'<p class="not">Fiyat yaz.</p>'}
+    ${!maliyetVar(u)?`<p class="not">Bu üründe maliyet yok, gerçekte biraz daha az kalır.</p>`:""}
   </section>
-  <div class="iki">
-    <section class="kart"><div class="satirbas"><h2>Bu fiyatta</h2>${t?marjRozet(t.marj,A):""}</div>
-      ${t?`<div class="dokum">${satir("Satış (KDV dahil)",tl(t.brut))}${satir("Net KDV",dus(t.netKdv))}${satir("Komisyon",dus(t.komisyon))}${satir("Kargo",dus(t.kargo))}${satir("Hizmet bedeli",dus(t.hizmet))}${satir("Stopaj",dus(t.stopaj))}${satir("Üretim maliyeti",dus(t.uretim))}${satir("Net kâr",`<span class="${t.net<0?"eksi":""}">${tl(t.net)} · ${yuzde(t.marj)}</span>`,"top")}</div>`:'<p class="not">Fiyat gir.</p>'}
-      ${oner?`<div class="bant info"><span>%${esc(hedef)} net marj için en düşük fiyat <b class="mono">${tl(oner)}</b></span><button class="btn kucuk" id="fUygula">Bunu dene</button></div>`:'<p class="not">Bu marj için uygun fiyat yok. Komisyon ve vergilerin toplamı marjı aşıyor.</p>'}
-    </section>
-    <section class="kart"><h2>Kampanya teklifi çıktı mı?</h2>
-      <div class="alan"><label for="fKamp">Teklif edilen fiyat TL</label><input id="fKamp" type="number" inputmode="decimal" step="any" value="${esc(G.kampanya)}" placeholder="Örn. 199,99"></div>
-      ${kr?`<div class="bant info"><span>${tl(kamp)} fiyatta net <b class="mono ${kr.net<0?"eksi":""}">${tl(kr.net)}</b> (${yuzde(kr.marj)})</span>${karar(kr.marj)}</div>`:""}
-      ${f?`<div class="tablo-kap"><table><thead><tr><th>İndirim</th><th class="r">Fiyat</th><th class="r">Net</th><th>Karar</th></tr></thead><tbody>${kosu.map(k=>`<tr><td>%${k.d}</td><td class="r">${tl(k.p)}</td><td class="r ${k.r.net<0?"eksi":""}">${tl(k.r.net)}</td><td>${karar(k.r.marj)}</td></tr>`).join("")}</tbody></table></div>`:""}
-    </section>
-  </div>
-  <section class="kart"><h2>Kanal karşılaştırması</h2><p class="not">Aynı fiyatla her kanalda ne kalıyor. Oranlar Veri sekmesindeki ayarlardan gelir.</p>
-    ${f?`<div class="tablo-kap"><table><thead><tr><th>Kanal</th><th class="r">Kesinti</th><th class="r">Net kâr</th><th class="r">Marj</th></tr></thead><tbody>${Object.keys(A.kanallar).map(k=>{const r=fiyatTest(f,u,k,A);return `<tr><td>${esc(k)}</td><td class="r">${tl(r.komisyon+r.hizmet+r.kargo)}</td><td class="r ${r.net<0?"eksi":""}">${tl(r.net)}</td><td class="r">${yuzde(r.marj)}</td></tr>`}).join("")}</tbody></table></div>`:""}
-  </section>`;
+  <section class="kart"><h2>Kampanya teklifi geldi mi?</h2>
+    <div class="alan"><label for="fKamp">Teklif edilen fiyat TL</label><input id="fKamp" type="number" inputmode="decimal" step="any" value="${esc(G.kampanya)}"></div>
+    ${kr?`<div class="satirbas"><span class="sonuc ${kr.net<0?"eksi":""}">${tl(kr.net)} kalır</span>${karar(kr.marj)}</div>`:""}
+  </section>
+  <details class="kart"><summary><h2>Ayrıntılar</h2></summary>
+    <div class="alanlar">
+      <div class="alan"><label for="fKanal">Kanal</label><select id="fKanal">${Object.keys(A.kanallar).map(k=>`<option ${k===G.fiyatKanal?"selected":""}>${esc(k)}</option>`).join("")}</select></div>
+      <div class="alan"><label for="fKom">Komisyon %</label><input id="fKom" type="number" inputmode="decimal" step="any" value="${esc(G.fiyatKom)}"></div>
+      <div class="alan"><label for="fHedef">Hedef kâr %</label><input id="fHedef" type="number" inputmode="decimal" step="any" value="${esc(hedef)}"></div>
+    </div>
+    ${t?`<div class="dokum">${satir("Satış",tl(t.brut))}${satir("Vergi (KDV)",dus(t.netKdv))}${satir("Komisyon",dus(t.komisyon))}${satir("Kargo",dus(t.kargo))}${satir("Hizmet bedeli",dus(t.hizmet))}${satir("Stopaj",dus(t.stopaj))}${satir("Üretim",dus(t.uretim))}${satir("Cebine kalan",`<span class="${t.net<0?"eksi":""}">${tl(t.net)}</span>`,"top")}</div>`:""}
+    ${oner?`<div class="bant info"><span>%${esc(hedef)} kâr için en düşük fiyat <b class="mono">${tl(oner)}</b></span><button class="btn kucuk" id="fUygula">Dene</button></div>`:""}
+    ${f?`<div class="tablo-kap"><table><thead><tr><th>Kanal</th><th class="r">Kalan</th></tr></thead><tbody>${Object.keys(A.kanallar).map(k=>{const r=fiyatTest(f,u,k,A);return `<tr><td>${esc(k)}</td><td class="r ${r.net<0?"eksi":""}">${tl(r.net)}</td></tr>`}).join("")}</tbody></table></div>`:""}
+  </details>`;
   const yeniden=(id)=>{const el=$("#"+id);const p=el.selectionStart;fiyatCiz(e);const n=$("#"+id);n.focus();try{n.setSelectionRange(p,p)}catch(x){}};
   $("#fUrun").onchange=ev=>{G.fiyatSku=ev.target.value;const x=D.urunler[G.fiyatSku];G.fiyat=x&&x.fiyat||"";G.fiyatKom="";G.kampanya="";fiyatCiz(e)};
   $("#fKanal").onchange=ev=>{G.fiyatKanal=ev.target.value;fiyatCiz(e)};
@@ -599,8 +589,8 @@ function siparisCiz(e){
   const fl={tum:()=>true,zarar:r=>r.net<0,iade:r=>r.iade,eksik:r=>r.maliyetEksik};
   const sat=G.sipFiltre==="kontrol"?[]:tum.filter(fl[G.sipFiltre]).slice(0,150);
   const say=f=>tum.filter(fl[f]).length;
-  e.innerHTML=`${ornek?ornekBant():""}
-  <div class="cipler" role="group" aria-label="Filtre">${[["tum","Tümü",tum.length],["zarar","Zarar edenler",say("zarar")],["iade","İadeler",say("iade")],["eksik","Maliyetsiz",say("eksik")],["kontrol","Kesinti kontrolü",kontrol.length]].map(([f,a,n])=>`<button class="cip" data-sipf="${f}" aria-pressed="${G.sipFiltre===f}">${a} · ${n}</button>`).join("")}</div>
+  e.innerHTML=`${geri()}${ornek?ornekBant():""}
+  <div class="cipler" role="group" aria-label="Filtre">${[["tum","Tümü",tum.length],["zarar","Zarar",say("zarar")],["iade","İade",say("iade")],["kontrol","Fazla kesinti",kontrol.length]].map(([f,a,n])=>`<button class="cip" data-sipf="${f}" aria-pressed="${G.sipFiltre===f}">${a} · ${n}</button>`).join("")}</div>
   ${G.sipFiltre==="kontrol"?`<section class="kart"><h2>Kesinti kontrolü</h2><p class="not">Pazaryerinin kestiği ile hesaplanan farklıysa burada görünür. Komisyon ve desi kontrolü Trendyol bağlantısıyla çalışır. Fark görürsen satıcı panelinden itiraz edebilirsin.</p>
     ${kontrol.length?`<div class="tablo-kap"><table><thead><tr><th>Sipariş</th><th>Tür</th><th class="r">Olması gereken</th><th class="r">Kesilen</th></tr></thead><tbody>${kontrol.map(c=>`<tr><td>${esc(c.r.k.siparisNo)}<br><span class="not">${esc(c.not)}</span></td><td>${c.tur}</td><td class="r">${c.adet?c.bek+" desi":tl(c.bek)}</td><td class="r eksi">${c.adet?c.ger+" desi":tl(c.ger)}</td></tr>`).join("")}</tbody></table></div>`:'<p class="not">Fark yok.</p>'}
     ${Object.keys(D.hizmetFatura).length?`<h3>Faturalanan hizmet bedeli</h3><div class="dokum">${Object.entries(D.hizmetFatura).sort().reverse().map(([a,v])=>`<div class="s"><span>${esc(a)}</span><span>${tl(v)}</span></div>`).join("")}</div>`:""}</section>`:
@@ -622,7 +612,7 @@ function satirLevha(r){
   const G1='<span class="ger">GERÇEK</span>',T1='<span class="tah">TAHMİN</span>';
   $("#katman").innerHTML=`<div class="perde" id="perde"><div class="levha" role="dialog" aria-modal="true" aria-label="Sipariş dökümü"><h2>${esc(urunAd(r))}</h2>
    <span class="not">${tarihYaz(r.k.tarih)} · ${esc(r.k.kanal)} · Sipariş ${esc(r.k.siparisNo||"")} · ${r.adet} adet</span>
-   <div class="dokum">${s("Satış (KDV dahil)",tl(r.brut))}${s("Net KDV",dus(r.netKdv))}${s("Komisyon ("+yuzde(r.oran)+")",dus(r.komisyon),r.komGercek?G1:T1)}${s("Kargo",dus(r.kargo),r.kargoGercek?G1:T1)}${s("Hizmet bedeli",dus(r.hizmet),T1)}${s("Stopaj",dus(r.stopaj))}${s("Üretim maliyeti",dus(r.uretim),r.maliyetEksik?'<span class="tah">GİRİLMEDİ</span>':"")}${s("Net kâr",`<span class="${r.net<0?"eksi":""}">${tl(r.net)} · ${yuzde(r.marj)}</span>`,"","top")}</div>
+   <div class="dokum">${s("Satış",tl(r.brut))}${s("Vergi (KDV)",dus(r.netKdv))}${s("Komisyon ("+yuzde(r.oran)+")",dus(r.komisyon),r.komGercek?G1:T1)}${s("Kargo",dus(r.kargo),r.kargoGercek?G1:T1)}${s("Hizmet bedeli",dus(r.hizmet),T1)}${s("Stopaj",dus(r.stopaj))}${s("Üretim maliyeti",dus(r.uretim),r.maliyetEksik?'<span class="tah">GİRİLMEDİ</span>':"")}${s("Cebine kalan",`<span class="${r.net<0?"eksi":""}">${tl(r.net)}</span>`,"","top")}</div>
    <button class="btn" id="sKapat">Kapat</button></div></div>`;
   const k=()=>{$("#katman").innerHTML=""};$("#sKapat").onclick=k;$("#perde").addEventListener("click",ev=>{if(ev.target.id==="perde")k()});
 }
@@ -855,7 +845,8 @@ function veriCiz(e){
   const kanal=Object.entries(A.kanallar).map(([k,v])=>`<tr><td>${esc(k)}</td>${["komisyon","sabit","hizmet"].map(a=>`<td><input aria-label="${esc(k)} ${a}" data-kn="${esc(k)}" data-ka="${a}" type="number" inputmode="decimal" step="any" value="${esc(v[a])}" style="width:74px;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:6px;font-size:16px"></td>`).join("")}</tr>`).join("");
   const sayi=(id,et,v)=>`<div class="alan"><label for="${id}">${et}</label><input id="${id}" data-ayar="${id}" type="number" inputmode="decimal" step="any" value="${esc(v)}"></div>`;
   e.innerHTML=`
-  <section class="kart"><div class="satirbas"><h2>Trendyol bağlantısı</h2>${K.adres&&K.kod?'<span class="rozet ok">✓ Kurulu</span>':'<span class="rozet gri">Kurulmadı</span>'}</div>
+  ${geri()}<h2>Ayarlar</h2>
+  <details class="kart" ${K.adres&&K.kod?"":"open"}><summary><h2>Trendyol bağlantısı ${K.adres&&K.kod?'<span class="rozet ok">✓ Bağlı</span>':'<span class="rozet gri">Bağlı değil</span>'}</h2></summary>
   ${artifactte?`<div class="bant info"><span>Otomatik çekim, telefondaki sürümde çalışır: <b class="mono">arayxtech-afk.github.io/kar.html</b>. Burada Excel yükleyebilirsin.</span></div>`:`
     <p class="not">Bağlantı yalnız okur; fiyat, stok ya da sipariş değiştiremez. Trendyol anahtarların Cloudflare'da durur, bu sayfaya girmez. Müşteri adı, adres ve telefonu köprüde silinir, buraya hiç gelmez.</p>
     <details ${K.adres?"":"open"}><summary>Kurulum (bir kerelik)</summary>
@@ -874,13 +865,13 @@ function veriCiz(e){
     </div>
     <div class="sira"><button class="btn" id="kCek" ${K.adres&&K.kod?"":"disabled"}>Son 30 günü çek</button><button class="btn ikinci" id="kTest" ${K.adres&&K.kod?"":"disabled"}>Bağlantıyı dene</button><span class="not" id="kDurum" role="status">${esc(OTO.hata||OTO.kismi||(D.sonCekim?"Son tam çekim: "+tarihYaz(D.sonCekim):""))}</span></div>
     <p class="not">Uygulama açıkken siparişler 5 dakikada bir kendiliğinden yenilenir, komisyon ve kargo faturası günde bir kez alınır. Uygulama kapalıyken yenilenmez. Trendyol geçmiş siparişleri yaklaşık 1 ay tuttuğu için ayda en az bir kez aç, eski kayıtlar burada kalır.</p>`}
-  </section>
-  <section class="kart"><h2>Excel'den sipariş yükle</h2><p class="not">Trendyol, Hepsiburada ya da N11 panelinden indirdiğin sipariş dosyası. Alıcı adı ve adres okunmaz, kaydedilmez. Aynı dosyayı iki kez yüklersen çift saymaz.</p>
+  </details>
+  <details class="kart" ${artifactte?"open":""}><summary><h2>Excel'den sipariş yükle</h2></summary><p class="not">Trendyol, Hepsiburada ya da N11 panelinden indirdiğin sipariş dosyası. Alıcı adı ve adres okunmaz, kaydedilmez. Aynı dosyayı iki kez yüklersen çift saymaz.</p>
     <div class="alanlar"><div class="alan"><label for="exKanal">Kanal</label><select id="exKanal">${Object.keys(A.kanallar).map(k=>`<option>${esc(k)}</option>`).join("")}</select></div>
     <div class="alan"><label for="exDosya">Dosya</label><input id="exDosya" type="file" accept=".xlsx,.xls,.csv"></div></div>
     <div id="exEsle"></div>
-  </section>
-  <section class="kart" id="ayarlar"><h2>Hesap ayarları</h2>
+  </details>
+  <details class="kart" id="ayarlar"><summary><h2>Hesap ayarları</h2></summary>
     <h3>Üretim maliyeti</h3>
     <div class="alanlar">${sayi("filamentKg","Filament TL/kg",A.filamentKg)}${sayi("fire","Fire %",A.fire)}${sayi("makineSaat","Makine TL/saat",A.makineSaat)}${sayi("iscilikSaat","İşçilik TL/saat",A.iscilikSaat)}${sayi("ambalaj","Ambalaj TL",A.ambalaj)}</div>
     <label class="onay"><input type="checkbox" data-onay="uretim" ${A.onay.uretim?"checked":""}><span>Bu rakamlar benim gerçek maliyetlerim</span></label>
@@ -897,11 +888,11 @@ function veriCiz(e){
     <label class="onay"><input type="checkbox" data-sec="kdvMahsup" ${A.kdvMahsup?"checked":""}><span>Giderlerin KDV'sini mahsup ediyorum (net KDV). KDV mükellefi değilsen kapat.</span></label>
     <label class="onay"><input type="checkbox" data-sec="stopajGider" ${A.stopajGider?"checked":""}><span>Stopajı gider say. Yıl sonu vergiden düşülebildiği için kapatmak isteyebilirsin; muhasebecine sor.</span></label>
     <label class="onay"><input type="checkbox" data-sec="iadeParcaKayip" ${A.iadeParcaKayip?"checked":""}><span>İade gelen parçayı tekrar satamıyorum (maliyeti zarar yazılır)</span></label>
-  </section>
-  <section class="kart"><h2>Yedek</h2><p class="not">${n} sipariş satırı, ${Object.keys(D.urunler).length} ürün kayıtlı.</p>
+  </details>
+  <details class="kart"><summary><h2>Yedek</h2></summary><p class="not">${n} sipariş satırı, ${Object.keys(D.urunler).length} ürün kayıtlı.</p>
     <div class="sira"><button class="btn ikinci" id="yedekAl">Yedeği indir</button><label class="btn ikinci" for="yedekDosya" style="display:inline-flex;align-items:center">Yedekten yükle</label><input id="yedekDosya" type="file" accept=".json" hidden></div>
     <div class="sira" id="silKutu"><button class="btn tehlike" id="silBas">Siparişleri sil</button></div>
-  </section>`;
+  </details>`;
   veriBagla(e);
 }
 function veriBagla(e){
