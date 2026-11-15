@@ -590,7 +590,7 @@ function nextAx(){
   return pre+pad(st.axSayac,4);
 }
 function ayOzet(k){
-  const tes=S.orders.filter(o=>o.durum==='teslim'&&monthKey(o.teslimTarihi||o.tarih)===k);
+  const tes=S.orders.filter(o=>(o.durum==='tamamlandi'||o.durum==='teslim')&&monthKey(o.teslimTarihi||o.tamamlanmaTarihi||o.tarih)===k);
   const ek=S.entries.filter(e=>e.tip==='gelir'&&monthKey(e.tarih)===k);
   const gid=S.entries.filter(e=>e.tip==='gider'&&monthKey(e.tarih)===k);
   const sipGelir=sum(tes,o=>num(o.fiyat)),ekGelir=sum(ek,e=>num(e.tutar)),gider=sum(gid,e=>num(e.tutar));
@@ -645,7 +645,7 @@ function vBugun(){
   const hafta=isler.filter(o=>o.termin&&o.termin>=t&&o.termin<=addDays(t,7)).sort(sortOpen);
   const hazir=S.orders.filter(o=>o.durum==='tamamlandi').sort(sortOpen);
   const teklif=S.orders.filter(o=>o.durum==='teklif').sort((a,b)=>String(a.tarih).localeCompare(String(b.tarih)));
-  const alacak=S.orders.filter(o=>o.durum==='teslim'&&oKalan(o)>0).sort((a,b)=>String(a.teslimTarihi).localeCompare(String(b.teslimTarihi)));
+  const alacak=S.orders.filter(o=>(o.durum==='tamamlandi'||o.durum==='teslim')&&oKalan(o)>0).sort((a,b)=>String(a.teslimTarihi||a.tamamlanmaTarihi).localeCompare(String(b.teslimTarihi||b.tamamlanmaTarihi)));
   const kuyruk=sum(isler,o=>sum((o.parcalar||[]).filter(p=>!p.bitti),p=>num(p.sure)*adet(p)));
   const ay=ayOzet(monthKey(t));
   const dusuk=S.spools.filter(s=>num(s.kalan)<=num(S.settings.dusukStok));
@@ -687,7 +687,7 @@ function vSiparisler(){
 function filterOrders(f,q){
   let a=S.orders;
   if(f==='acik')a=a.filter(o=>ACIK.includes(o.durum));
-  else if(f==='alacak')a=a.filter(o=>o.durum==='teslim'&&oKalan(o)>0);
+  else if(f==='alacak')a=a.filter(o=>(o.durum==='tamamlandi'||o.durum==='teslim')&&oKalan(o)>0);
   else if(f!=='tum')a=a.filter(o=>o.durum===f);
   if(q){const n=norm(q),dg=q.replace(/\D/g,'');a=a.filter(o=>{const hay=norm([o.musteri,o.ax,o.kanal,o.sehir,o.not,o.takip,...(o.parcalar||[]).flatMap(p=>[p.ad,p.arac,p.malzeme])].join(' '));return hay.includes(n)||(dg.length>=3&&String(o.telefon||'').replace(/\D/g,'').includes(dg));});}
   return a;
@@ -751,13 +751,13 @@ function upCard({o,p}){
 }
 
 function vMuhasebe(){
-  const k=UI.month,a=ayOzet(k),alacakO=S.orders.filter(o=>o.durum==='teslim'&&oKalan(o)>0);
+  const k=UI.month,a=ayOzet(k),alacakO=S.orders.filter(o=>(o.durum==='tamamlandi'||o.durum==='teslim')&&oKalan(o)>0);
   let body='';
   if(UI.acc==='ozet')body=accOzet(k,a);
   else if(UI.acc==='gelir'){
-    const rows=[...a.tes.map(o=>({d:o.teslimTarihi||o.tarih,h:`<button class="row" data-act="open" data-id="${o.id}"><div class="row-main"><div class="row-top"><b>${esc(o.musteri)}</b><span class="ax">${esc(o.ax||'')}</span></div><div class="row-sub">${esc(fmtD(o.teslimTarihi)+' · '+(o.kanal||'Sipariş')+' · '+partsText(o))}</div></div><div class="row-side"><span class="money">${tl(o.fiyat)}</span>${oKalan(o)>0?`<span class="due bad">${tl(oKalan(o))} alacak</span>`:''}</div></button>`})),
+    const rows=[...a.tes.map(o=>({d:o.teslimTarihi||o.tamamlanmaTarihi||o.tarih,h:`<button class="row" data-act="open" data-id="${o.id}"><div class="row-main"><div class="row-top"><b>${esc(o.musteri)}</b><span class="ax">${esc(o.ax||'')}</span></div><div class="row-sub">${esc(fmtD(o.teslimTarihi||o.tamamlanmaTarihi)+' · '+(o.kanal||'Sipariş')+' · '+partsText(o))}</div></div><div class="row-side"><span class="money">${tl(o.fiyat)}</span>${oKalan(o)>0?`<span class="due bad">${tl(oKalan(o))} alacak</span>`:''}</div></button>`})),
       ...a.ek.map(e=>({d:e.tarih,h:entryRow(e)}))].sort((x,y)=>String(y.d).localeCompare(String(x.d)));
-    body=rows.length?`<div class="list">${rows.map(r=>r.h).join('')}</div>`:emptyBox('wallet','Bu ay gelir yok','Teslim edilen siparişler ve eklediğin gelirler burada listelenir.');
+    body=rows.length?`<div class="list">${rows.map(r=>r.h).join('')}</div>`:emptyBox('wallet','Bu ay gelir yok','Tamamlanan / teslim edilen siparişler ve eklediğin gelirler burada listelenir.');
   } else {
     const rows=a.gid.slice().sort((x,y)=>String(y.tarih).localeCompare(String(x.tarih)));
     body=rows.length?`<div class="list">${rows.map(entryRow).join('')}</div>`:emptyBox('wallet','Bu ay gider yok','Gider ekle düğmesiyle filament, kargo, elektrik gibi masrafları kaydet.');
@@ -774,7 +774,7 @@ function vMuhasebe(){
     <div class="tile"><span class="k">Tahsil edilen</span><span class="v">${tl(a.tahsil)}</span><span class="s">Bu ay alınan ödemeler</span></div>
     <button class="tile${alacakO.length?' alert':''}" data-act="filt" data-f="alacak"><span class="k">Açık alacak</span><span class="v">${tl(sum(alacakO,oKalan))}</span><span class="s">${alacakO.length} sipariş · tüm aylar</span></button>
    </div>
-   <p class="hint">Gelir = teslim edilen siparişler + eklediğin gelirler. Kâr = gelir − gider.</p>
+   <p class="hint">Gelir = tamamlanan veya teslim edilen siparişler + eklediğin gelirler. Kâr = gelir − gider.</p>
    <div class="tabs" style="margin-top:6px"><button class="${UI.acc==='ozet'?'on':''}" data-act="acc" data-t="ozet">Aylık özet</button><button class="${UI.acc==='gelir'?'on':''}" data-act="acc" data-t="gelir">Gelirler<span class="badge">${a.tes.length+a.ek.length}</span></button><button class="${UI.acc==='gider'?'on':''}" data-act="acc" data-t="gider">Giderler<span class="badge">${a.gid.length}</span></button></div>
    ${body}
   </div>`;
@@ -807,7 +807,7 @@ function accOzet(k,a){
   return `<div class="stack">
    <div><div class="eyebrow">ARAYX 3D · aylık rapor</div><h2 class="h2" style="margin-top:8px">${monthName(k)}</h2></div>
    <div class="grid2"><button class="btn soft" data-act="exportMonth">${icon('download')}Özeti indir</button><button class="btn" data-act="exportJson">${icon('save')}Yedek indir</button></div>
-   <div class="card tint stack"><p class="summary">${a.tes.length} sipariş teslim edildi · ${a.ek.length} ek gelir kaydı.</p>
+   <div class="card tint stack"><p class="summary">${a.tes.length} sipariş tamamlandı · ${a.ek.length} ek gelir kaydı.</p>
      <p style="margin:0">${a.gelir||a.gider?`Kâr ${tl(a.kar)}; gelirin %${a.gelir?nf0.format(Math.max(0,a.kar)/a.gelir*100):0}'i cepte kaldı.`:'Bu aya ait gelir veya gider kaydı henüz yok.'}</p>
      <p class="hint">Sipariş geliri ${tl(a.sipGelir)} · eklenen gelir ${tl(a.ekGelir)} · tahsil edilen ${tl(a.tahsil)} · ${nf1.format(a.gram/1000)} kg filament.</p></div>
    <div class="card stack"><div class="sec-h"><h3 class="h3">Son 6 ay</h3><div class="legend"><span><i style="background:var(--scan)"></i>Gelir</span><span><i style="background:var(--gider)"></i>Gider</span></div></div>${chart6(k)}<p class="hint">Çubukların altındaki sayı o ayın kârı (b = bin TL).</p></div>
@@ -821,7 +821,7 @@ function accOzet(k,a){
      <tr><td>Teslim</td><td>${p.tes.length}</td><td>${a.tes.length}</td>${dl(a.tes.length,p.tes.length)}</tr>
      <tr><td>Filament</td><td>${nf1.format(p.gram/1000)} kg</td><td>${nf1.format(a.gram/1000)} kg</td>${dl(a.gram,p.gram,true)}</tr></tbody></table></div>`:'<p class="hint">Önceki aya ait kayıt yok. Kayıt oluştuğunda karşılaştırma burada görünecek.</p>'}
     ${k===monthKey(todayStr())?'<p class="hint">Devam eden ayın rakamları ay ilerledikçe değişir.</p>':''}</div>
-   <p class="hint">Sipariş geliri teslim ayına, eklenen gelir kendi tarihine, filament tamamlanma ayına, giderler gider tarihine göre sayılır. Kâr yalnızca kaydettiğin giderleri içerir; filament tüketimi kendiliğinden gider oluşturmaz (filamenti satın aldığında gider olarak gir).</p>
+   <p class="hint">Sipariş geliri teslim (yoksa tamamlanma) ayına, eklenen gelir kendi tarihine, filament tamamlanma ayına, giderler gider tarihine göre sayılır. Kâr yalnızca kaydettiğin giderleri içerir; filament tüketimi kendiliğinden gider oluşturmaz (filamenti satın aldığında gider olarak gir).</p>
   </div>`;
 }
 
