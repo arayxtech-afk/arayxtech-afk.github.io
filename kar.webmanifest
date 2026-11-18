@@ -1,0 +1,13 @@
+{
+  "name": "ARAYX Kâr Paneli",
+  "short_name": "ARAYX Kâr",
+  "start_url": "kar.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B2340",
+  "theme_color": "#0B2340",
+  "icons": [
+    { "src": "kar-ikon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "kar-ikon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
