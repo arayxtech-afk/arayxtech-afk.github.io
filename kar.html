@@ -104,6 +104,12 @@ td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 td.r,th.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 tr:last-child td{border-bottom:0}
 .liste{display:grid}
+.gunkutu{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gk{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:2px;min-width:0}
+.gk .ad{font:600 .74rem/1 var(--mono);letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+.gk b{font:700 2.1rem/1.05 var(--display);color:var(--head)}
+.gk b small{font:500 .85rem var(--body);color:var(--muted)}
+.gk .tut{font:600 .95rem/1.2 var(--mono);color:var(--text);overflow-wrap:anywhere}
 .btoplam{display:flex;align-items:baseline;gap:10px}
 .btoplam b{font:700 3rem/1 var(--display);color:var(--head)}
 .btoplam span{color:var(--muted);font-size:.92rem}
@@ -398,7 +404,11 @@ function ciz(){
   sekmeCiz();
   etiketYaz();
   const e=$("#ekran");
+  /* Yeniden çizimde açık bırakılan katlanır bölümler açık kalsın */
+  const baslik=d=>{const h=d.querySelector("summary h2");return G.sekme+"|"+(h?h.textContent.trim():"")};
+  const acik=new Set([...e.querySelectorAll("details[open]")].map(baslik));
   ({ozet:ozetCiz,urunler:urunlerCiz,siparis:siparisCiz,veri:veriCiz})[G.sekme](e);
+  if(acik.size)e.querySelectorAll("details").forEach(d=>{if(acik.has(baslik(d)))d.open=true});
 }
 function ornekBant(){return `<div class="bant warn"><span><b>Örnek rakamlar.</b> Bunlar senin satışların değil.</span><button class="btn kucuk" data-git="veri">Mağazamı bağla</button></div>`}
 function geri(){return `<button class="geri" data-sekme="ozet">← Özet</button>`}
@@ -415,6 +425,14 @@ function bekliyorMu(k){
   if(k.kanal==="Trendyol")return BEKLEYEN_TY.has(k.ham);
   if(k.kanal==="N11")return BEKLEYEN_N11.has(k.ham);
   return /bekl|yeni|onay|hazırla|paketle|işlem/i.test(k.ham)&&!/kargo(ya verildi|da)|yolda|gönderildi/i.test(k.ham);
+}
+/* Bugün ve bu hafta (pazartesiden beri): iptal hariç sipariş sayısı (paket) ve satış tutarı, tüm mağazalar */
+function bugunCiz(kalemler){
+  const g=new Date();g.setHours(0,0,0,0);const bugun=g.getTime();
+  const h=new Date(g);h.setDate(h.getDate()-((h.getDay()+6)%7));const hafta=h.getTime();
+  const say=bas=>{const l=kalemler.filter(k=>k.tarih>=bas&&k.durum!=="iptal");return {paket:new Set(l.map(k=>k.kanal+"|"+k.paket)).size,tl:l.reduce((a,k)=>a+(+k.brut||0),0)}};
+  const b=say(bugun),w=say(hafta);
+  return `<div class="gunkutu">${[["Bugün",b],["Bu hafta",w]].map(([ad,v])=>`<div class="gk"><span class="ad">${ad}</span><b>${fmt0.format(v.paket)} <small>sipariş</small></b><span class="tut">${tl0(v.tl)}</span></div>`).join("")}</div>`;
 }
 function bekleyenCiz(kalemler,ornek){
   if(ornek)return "";
@@ -451,6 +469,7 @@ function ozetCiz(e){
   const yaklasan=yaklasanOdeme();
   e.innerHTML=`
   ${ornek?ornekBant():""}
+  ${ornek?"":bugunCiz(kalemler)}
   ${bekleyenCiz(kalemler,ornek)}
   <div class="cipler" role="group" aria-label="Dönem">${[["buay","Bu ay"],["gecenay","Geçen ay"]].map(([d,a])=>`<button class="cip" data-donem="${d}" aria-pressed="${G.donem===d}">${a}</button>`).join("")}</div>
   ${kanallar.length>2?`<div class="cipler" role="group" aria-label="Kanal">${kanallar.map(k=>`<button class="cip" data-kanal="${esc(k)}" aria-pressed="${G.kanal===k}">${esc(k)}</button>`).join("")}</div>`:""}
@@ -459,11 +478,11 @@ function ozetCiz(e){
     <div class="deger">${tl0(t.kalan)}</div>
     <p class="cumle">${fmt0.format(t.paket)} siparişten ${tl0(t.brut)} satış yaptın.</p>
   </section>
-  <section class="kart"><h2>Kesintiler</h2>
+  <details class="kart"><summary><h2>Kesintiler</h2></summary>
     ${s.length?`<div class="kopru">${kopru.map(([a,v,c])=>`<div class="s ${c}"><span>${a}</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(v)/maks*100}%"></div></div><span class="tut">${v<0?"-":""}${tl0(Math.abs(v))}</span></div>`).join("")}<div class="s net ${t.kalan<0?"eksi":""}"><span>Kalan</span><div class="cubuk"><div class="dolu" style="width:${Math.abs(t.kalan)/maks*100}%"></div></div><span class="tut">${tl0(t.kalan)}</span></div></div>`:`<p class="not">Bu dönemde sipariş yok.</p>`}
-  </section>
+  </details>
   ${kontrol.length?`<div class="bant warn"><span>Trendyol ${kontrol.length} siparişte fazla kesmiş olabilir.</span><button class="btn kucuk ikinci" data-sipf="kontrol">Gör</button></div>`:""}
-  <section class="kart"><h2>En çok bırakan ürünler</h2>${urunTablo(urunListe.slice(0,5))}</section>
+  <details class="kart"><summary><h2>En çok bırakan ürünler</h2></summary>${urunTablo(urunListe.slice(0,5))}</details>
   ${yaklasan.length?`<details class="kart"><summary><h2>Yatacak para</h2></summary><div class="tablo-kap"><table><thead><tr><th>Tarih</th><th class="r">Tutar</th></tr></thead><tbody>${yaklasan.map(y=>`<tr><td>${tarihYaz(y.t)}</td><td class="r">${tl(y.tutar)}</td></tr>`).join("")}</tbody></table></div></details>`:""}`;
 }
 function urunTablo(l){
