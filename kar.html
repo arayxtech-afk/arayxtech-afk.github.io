@@ -11,7 +11,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>
 /* Açılınca ve öne gelince yeni sürüm var mı bakar; varsa önbelleği atlayıp bir kez yeniler (İş Takibi ile aynı yöntem) */
-const APP_VER='20261118162444';
+const APP_VER='20261118164128';
 function guncelKontrol(){try{if(!/^https?:$/.test(location.protocol))return;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{
     const m=t.match(/const APP_VER='([^']+)'/);if(!m||m[1]===APP_VER)return;
@@ -123,6 +123,17 @@ tr:last-child td{border-bottom:0}
 .gk b{font:700 2.1rem/1.05 var(--display);color:var(--head)}
 .gk b small{font:500 .85rem var(--body);color:var(--muted)}
 .gk .tut{font:600 .95rem/1.2 var(--mono);color:var(--text);overflow-wrap:anywhere}
+.gunler{display:grid;gap:2px}
+.gs{display:grid;grid-template-columns:minmax(78px,96px) 1fr auto minmax(64px,auto);align-items:center;gap:8px;font-size:.88rem;padding:5px 0;border-bottom:1px solid var(--line)}
+.gs:last-child{border-bottom:0}
+.gs .tarih{font-weight:600;white-space:nowrap}
+.gs .cubuk{height:8px;background:var(--surface2);border-radius:0 4px 4px 0;overflow:hidden;min-width:0}
+.gs .dolu{height:100%;background:var(--bar);border-radius:0 4px 4px 0}
+.gs .adet{font:500 .78rem var(--mono);color:var(--muted);white-space:nowrap}
+.gs .tut{font:600 .86rem var(--mono);text-align:right;white-space:nowrap}
+.gs.bugun .tarih{color:var(--scan)}
+.gs.bos{color:var(--muted)}
+.gs.bos .tut{color:var(--muted);font-weight:500}
 .btoplam{display:flex;align-items:baseline;gap:10px}
 .btoplam b{font:700 3rem/1 var(--display);color:var(--head)}
 .btoplam span{color:var(--muted);font-size:.92rem}
@@ -449,6 +460,23 @@ function bugunCiz(kalemler){
   const b=say(bugun),m=say(ayBas);
   return `<div class="gunkutu">${[["Bugün",b],[ayAd,m]].map(([ad,v])=>`<div class="gk"><span class="ad">${ad}</span><b>${fmt0.format(v.paket)} <small>sipariş</small></b><span class="tut">${tl0(v.tl)}</span></div>`).join("")}</div>`;
 }
+/* Bu ayın günleri: her gün kaç sipariş (paket) geldi, kaç TL; iptal hariç, tüm mağazalar. En yeni gün üstte. */
+function gunlerCiz(kalemler){
+  const bugun=new Date();bugun.setHours(0,0,0,0);
+  const gunler=[];
+  for(let d=new Date(bugun.getFullYear(),bugun.getMonth(),1);d<=bugun;d.setDate(d.getDate()+1))gunler.push(new Date(d));
+  const satir=gunler.map(g=>{const s=g.getTime(),e=new Date(g.getFullYear(),g.getMonth(),g.getDate()+1).getTime();
+    const l=kalemler.filter(k=>k.tarih>=s&&k.tarih<e&&k.durum!=="iptal");
+    return {g,paket:new Set(l.map(k=>k.kanal+"|"+k.paket)).size,tl:l.reduce((a,k)=>a+(+k.brut||0),0)}}).reverse();
+  const maks=Math.max(1,...satir.map(x=>x.tl));
+  const satisli=satir.filter(x=>x.paket);
+  const ort=satisli.length?satisli.reduce((a,x)=>a+x.tl,0)/satir.length:0;
+  const en=satisli.length?satisli.reduce((a,x)=>x.tl>a.tl?x:a):null;
+  const gunAd=g=>g.toLocaleDateString("tr-TR",{day:"numeric",month:"short"})+" "+g.toLocaleDateString("tr-TR",{weekday:"short"});
+  return `<section class="kart"><div class="satirbas"><h2>Günler</h2><span class="not">Günlük ortalama ${tl0(ort)}${en?` · en iyi gün ${en.g.getDate()} ${en.g.toLocaleDateString("tr-TR",{month:"long"})}`:""}</span></div>
+    <div class="gunler">${satir.map((x,i)=>`<div class="gs${i===0?" bugun":""}${x.paket?"":" bos"}"><span class="tarih">${i===0?"Bugün":gunAd(x.g)}</span><div class="cubuk"><div class="dolu" style="width:${x.tl/maks*100}%"></div></div><span class="adet">${x.paket} sip.</span><span class="tut">${tl0(x.tl)}</span></div>`).join("")}</div>
+  </section>`;
+}
 function bekleyenCiz(kalemler,ornek){
   if(ornek)return "";
   const bek=kalemler.filter(bekliyorMu);
@@ -487,6 +515,7 @@ function ozetCiz(e){
   ${ornek?"":bildirimBant()}
   ${ornek?"":bugunCiz(kalemler)}
   ${bekleyenCiz(kalemler,ornek)}
+  ${ornek?"":gunlerCiz(kalemler)}
   <div class="cipler" role="group" aria-label="Dönem">${[["buay","Bu ay"],["gecenay","Geçen ay"]].map(([d,a])=>`<button class="cip" data-donem="${d}" aria-pressed="${G.donem===d}">${a}</button>`).join("")}</div>
   ${kanallar.length>2?`<div class="cipler" role="group" aria-label="Kanal">${kanallar.map(k=>`<button class="cip" data-kanal="${esc(k)}" aria-pressed="${G.kanal===k}">${esc(k)}</button>`).join("")}</div>`:""}
   <section class="hero">
