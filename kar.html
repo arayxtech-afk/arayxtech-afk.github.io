@@ -104,6 +104,16 @@ td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 td.r,th.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 tr:last-child td{border-bottom:0}
 .liste{display:grid}
+.btoplam{display:flex;align-items:baseline;gap:10px}
+.btoplam b{font:700 3rem/1 var(--display);color:var(--head)}
+.btoplam span{color:var(--muted);font-size:.92rem}
+.bkutular{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.bkutu{display:grid;gap:2px;justify-items:start;text-align:left;border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:10px;cursor:pointer;min-width:0}
+.bkutu .ad{font-weight:600;font-size:.85rem;overflow-wrap:anywhere}
+.bkutu b{font:700 2rem/1.05 var(--display);color:var(--head)}
+.bkutu small{font-size:.74rem;color:var(--muted)}
+.bkutu.secili{border-color:var(--btn);box-shadow:inset 0 0 0 1px var(--btn)}
+.bkutu:disabled{cursor:default;opacity:.7}
 .oge{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:10px 0;border-bottom:1px solid var(--line);background:none;border-left:0;border-right:0;border-top:0;text-align:left;width:100%;cursor:pointer}
 .liste .oge:last-child{border-bottom:0}
 .oge .ad{font-weight:600;font-size:.94rem;overflow-wrap:anywhere}
@@ -393,6 +403,37 @@ function ciz(){
 function ornekBant(){return `<div class="bant warn"><span><b>Örnek rakamlar.</b> Bunlar senin satışların değil.</span><button class="btn kucuk" data-git="veri">Mağazamı bağla</button></div>`}
 function geri(){return `<button class="geri" data-sekme="ozet">← Özet</button>`}
 /* ---------- Özet ---------- */
+/* ---------- Bekleyen siparişler: henüz kargoya verilmemiş olanlar ----------
+   Trendyol: Created, Picking, Invoiced, UnPacked, Repack. n11 kalem durumu (belgeye göre, gerçek veride doğrulanmadı):
+   1 işlem bekliyor, 2 ödendi, 5 kabul edildi, 14 kargo gecikti, 15 zamanında kargoya verilmedi.
+   Excel'den gelen satırda durum yazısına bakılır. Durumu bilinmeyen eski kayıt bekleyen sayılmaz. */
+const BEKLEYEN_TY=new Set(["Created","Picking","Invoiced","UnPacked","Repack"]);
+const BEKLEYEN_N11=new Set(["1","2","5","14","15"]);
+const BEK_KANAL=[["Trendyol","Trendyol"],["Hepsiburada","Hepsiburada"],["N11","n11"]];
+function bekliyorMu(k){
+  if(!k.ham||k.durum==="iptal"||k.durum==="iade"||k.durum==="teslim")return false;
+  if(k.kanal==="Trendyol")return BEKLEYEN_TY.has(k.ham);
+  if(k.kanal==="N11")return BEKLEYEN_N11.has(k.ham);
+  return /bekl|yeni|onay|hazırla|paketle|işlem/i.test(k.ham)&&!/kargo(ya verildi|da)|yolda|gönderildi/i.test(k.ham);
+}
+function bekleyenCiz(kalemler,ornek){
+  if(ornek)return "";
+  const bek=kalemler.filter(bekliyorMu);
+  const veriVar=new Set(kalemler.filter(k=>k.ham).map(k=>k.kanal));
+  const sec=G.bekKanal&&veriVar.has(G.bekKanal)?G.bekKanal:"";
+  const liste=bek.filter(k=>!sec||k.kanal===sec).sort((a,b)=>a.tarih-b.tarih);
+  const paketSay=l=>new Set(l.map(k=>k.kanal+"|"+k.paket)).size;
+  const kutular=BEK_KANAL.map(([k,ad])=>{
+    const l=bek.filter(x=>x.kanal===k);const var_=veriVar.has(k);
+    return `<button class="bkutu${sec===k?" secili":""}" ${var_?`data-bek="${k}" aria-pressed="${sec===k}"`:"disabled"}><span class="ad">${ad}</span><b>${var_?paketSay(l):"–"}</b><small>${var_?(l.length?"bekliyor":"hepsi kargoda"):"bağlanmadı"}</small></button>`;
+  }).join("");
+  const gun=t=>{const g=Math.floor((Date.now()-t)/864e5);return g<1?"bugün":g+" gün önce"};
+  return `<section class="kart bekleyen"><div class="satirbas"><h2>Bekleyen siparişler</h2>${sec?`<button class="btn kucuk ikinci" data-bek="">Tümü</button>`:""}</div>
+    <div class="btoplam"><b>${paketSay(bek)}</b><span>kargoya verilmeyi bekleyen sipariş</span></div>
+    <div class="bkutular">${kutular}</div>
+    ${liste.length?`<div class="liste">${liste.slice(0,40).map(k=>`<div class="oge"><span><span class="ad">${esc(temizAd(k.ad)||k.sku||"Ürün")}</span><br><span class="kod">${esc(k.kanal==="N11"?"n11":k.kanal)} · ${esc(k.siparisNo||k.paket)}${k.adet>1?" · "+k.adet+" adet":""}</span></span><span class="sag">${gun(k.tarih)}<small>${tarihYaz(k.tarih)}</small></span></div>`).join("")}</div>${liste.length>40?'<p class="not">İlk 40 satır gösteriliyor.</p>':""}`:`<p class="not">${sec?"Bu mağazada":"Şu an"} bekleyen sipariş yok.</p>`}
+  </section>`;
+}
 function ozetCiz(e){
   const {kalemler,urunler,ornek}=gorunen();const A=D.ayar;
   const ar=donemAralik(G.donem);
@@ -410,6 +451,7 @@ function ozetCiz(e){
   const yaklasan=yaklasanOdeme();
   e.innerHTML=`
   ${ornek?ornekBant():""}
+  ${bekleyenCiz(kalemler,ornek)}
   <div class="cipler" role="group" aria-label="Dönem">${[["buay","Bu ay"],["gecenay","Geçen ay"]].map(([d,a])=>`<button class="cip" data-donem="${d}" aria-pressed="${G.donem===d}">${a}</button>`).join("")}</div>
   ${kanallar.length>2?`<div class="cipler" role="group" aria-label="Kanal">${kanallar.map(k=>`<button class="cip" data-kanal="${esc(k)}" aria-pressed="${G.kanal===k}">${esc(k)}</button>`).join("")}</div>`:""}
   <section class="hero">
@@ -519,7 +561,7 @@ function tyKalem(p,l,i){
   const adet=+l.quantity||1;
   if(l.discountDetails&&l.discountDetails.length){l.discountDetails.forEach(d=>{brut+=(+d.lineItemPrice||0)+(+d.lineItemTyDiscount||0)})}
   else brut=((+l.lineUnitPrice||0)+(+l.lineTyDiscount||0))*adet;
-  return {id:"TY-"+p.shipmentPackageId+"-"+(l.lineId||i),kanal:"Trendyol",paket:String(p.shipmentPackageId),siparisNo:String(p.orderNumber||""),tarih:+p.orderDate,durum:DURUM_TY[p.status]||DURUM_TY[l.orderLineItemStatusName]||"yolda",sku:l.barcode||l.stockCode||"",stok:l.stockCode||"",barkod:l.barcode||"",ad:temizAd(l.productName),adet,brut:Math.round(brut*100)/100,kdvOran:l.vatRate!=null?+l.vatRate:null,komisyonOran:l.commission!=null?+l.commission:null,desi:+p.cargoDeci||null,kaynak:"api"};
+  return {id:"TY-"+p.shipmentPackageId+"-"+(l.lineId||i),kanal:"Trendyol",paket:String(p.shipmentPackageId),siparisNo:String(p.orderNumber||""),tarih:+p.orderDate,durum:DURUM_TY[p.status]||DURUM_TY[l.orderLineItemStatusName]||"yolda",ham:String(p.status||""),sku:l.barcode||l.stockCode||"",stok:l.stockCode||"",barkod:l.barcode||"",ad:temizAd(l.productName),adet,brut:Math.round(brut*100)/100,kdvOran:l.vatRate!=null?+l.vatRate:null,komisyonOran:l.commission!=null?+l.commission:null,desi:+p.cargoDeci||null,kaynak:"api"};
 }
 async function siparisAl(s,e,siparisPaket){
   let n=0;
@@ -622,7 +664,7 @@ function n11Gun(ms){const t=new Date(ms+3*36e5);return String(t.getUTCDate()).pa
 function n11Zaman(s){const m=String(s||"").match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/);return m?Date.UTC(+m[3],+m[2]-1,+m[1],(+m[4]||0)-3,+m[5]||0):Date.now()}
 function n11Kalem(o,l,i){
   const adet=+l.quantity||1;const brut=Math.max(0,(+l.price||0)*adet-(+l.sellerDiscount||0));
-  return {id:"N11-"+o.orderNumber+"-"+(l.id||i),kanal:"N11",paket:String(o.orderNumber||""),siparisNo:String(o.orderNumber||""),tarih:n11Zaman(o.createDate),durum:DURUM_N11[String(l.status)]||"yolda",sku:l.productSellerCode||"",stok:l.productSellerCode||"",barkod:"",ad:temizAd(l.productName),adet,brut:Math.round(brut*100)/100,kdvOran:null,komisyonOran:null,kaynak:"api"};
+  return {id:"N11-"+o.orderNumber+"-"+(l.id||i),kanal:"N11",paket:String(o.orderNumber||""),siparisNo:String(o.orderNumber||""),tarih:n11Zaman(o.createDate),durum:DURUM_N11[String(l.status)]||"yolda",ham:String(l.status||""),sku:l.productSellerCode||"",stok:l.productSellerCode||"",barkod:"",ad:temizAd(l.productName),adet,brut:Math.round(brut*100)/100,kdvOran:null,komisyonOran:null,kaynak:"api"};
 }
 async function n11Cek(gun){
   if(N11.yok)return 0;
@@ -669,8 +711,8 @@ function otoYenile(esik){
         try{await trendyolCek(30,()=>{});tamOldu=true;OTO.kismi=""}
         catch(x){if(x.yetki)throw x;OTO.kismi="Komisyon ve kargo faturası alınamadı: "+x.message}
       }
-      if(!tamOldu)await siparisAl(su-3*864e5,su,{});
-      await n11Guvenli(3);
+      if(!tamOldu)await siparisAl(su-7*864e5,su,{});
+      await n11Guvenli(7);
       if(imza()!==once){await Depo.yaz("urunler",{u:D.urunler});await kalemleriKaydet()}
       OTO.hata="";OTO.basari=Date.now();
     }catch(x){
@@ -746,7 +788,7 @@ function excelCevir(ex,kanal){
     if(isNaN(tarih)||brut==null||isNaN(brut)){atla++;return}
     const pk=String(al(s,"paket")||al(s,"siparisNo")||("x"+i));const sku=String(al(s,"sku")||al(s,"barkod")||"").trim();
     const kor=sayiOku(al(s,"komisyonOran"));const ktl=sayiOku(al(s,"komisyonTL"));const kgo=sayiOku(al(s,"kargoTL"));
-    c.push({id:kanal.slice(0,2).toUpperCase()+"-"+pk+"-"+(sku||i),kanal,paket:pk,siparisNo:String(al(s,"siparisNo")||pk),tarih,durum:durumOku(al(s,"durum")),sku,barkod:String(al(s,"barkod")||""),ad:String(al(s,"ad")||""),adet:sayiOku(al(s,"adet"))||1,brut,komisyonOran:kor!=null&&!isNaN(kor)?kor:null,komisyonTL:ktl!=null&&!isNaN(ktl)?Math.abs(ktl):null,kargoTL:kgo!=null&&!isNaN(kgo)?Math.abs(kgo):null,desi:sayiOku(al(s,"desi")),kaynak:"excel"});
+    c.push({id:kanal.slice(0,2).toUpperCase()+"-"+pk+"-"+(sku||i),kanal,paket:pk,siparisNo:String(al(s,"siparisNo")||pk),tarih,durum:durumOku(al(s,"durum")),ham:String(al(s,"durum")||""),sku,barkod:String(al(s,"barkod")||""),ad:String(al(s,"ad")||""),adet:sayiOku(al(s,"adet"))||1,brut,komisyonOran:kor!=null&&!isNaN(kor)?kor:null,komisyonTL:ktl!=null&&!isNaN(ktl)?Math.abs(ktl):null,kargoTL:kgo!=null&&!isNaN(kgo)?Math.abs(kgo):null,desi:sayiOku(al(s,"desi")),kaynak:"excel"});
   });
   return {c,atla};
 }
@@ -862,11 +904,12 @@ function yedekYukle(ev){
 }
 /* ---------- Olay yönlendirme ---------- */
 document.addEventListener("click",ev=>{
-  const t=ev.target.closest("[data-sekme],[data-git],[data-donem],[data-kanal],[data-sipf]");if(!t)return;
+  const t=ev.target.closest("[data-sekme],[data-git],[data-donem],[data-kanal],[data-sipf],[data-bek]");if(!t)return;
   if(t.dataset.sekme){G.sekme=t.dataset.sekme;ciz();scrollTo(0,0)}
   else if(t.dataset.git){G.sekme=t.dataset.git;ciz();const h=t.dataset.odak&&document.getElementById(t.dataset.odak);if(h)h.scrollIntoView();else scrollTo(0,0)}
   else if(t.dataset.donem){G.donem=t.dataset.donem;ciz()}
   else if(t.dataset.kanal){G.kanal=t.dataset.kanal;ciz()}
+  else if(t.dataset.bek!==undefined){G.bekKanal=G.bekKanal===t.dataset.bek?"":t.dataset.bek;ciz()}
   else if(t.dataset.sipf){G.sipFiltre=t.dataset.sipf;G.sekme="siparis";ciz()}
 });
 document.addEventListener("keydown",ev=>{if(ev.key==="Escape"&&$("#perde")){$("#katman").innerHTML="";ciz()}});
