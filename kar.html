@@ -614,7 +614,10 @@ async function trendyolCek(gun,dur){
    n11 anahtarı Cloudflare'a girilmemişse sessizce atlanır; n11 hatası Trendyol'u durdurmaz.
    Durum kodları n11 belgesinden: 7/10 teslim, 3/4/8 iptal, 9/13/16/17 iade, gerisi yolda. */
 const DURUM_N11={"7":"teslim","10":"teslim","3":"iptal","4":"iptal","8":"iptal","9":"iade","13":"iade","16":"iade","17":"iade"};
-const N11={yok:false,tamCekildi:false,hata:""};
+/* n11 "detailedOrders belli süre aralıklarıyla güncellenebilir" diye sık sorguyu reddeder:
+   tek tarih aralığıyla sorulur, en az 10 dakika arayla; reddederse 15 dakika beklenir. */
+const N11={yok:false,tamCekildi:false,hata:"",son:0,bekle:0};
+const N11_ARALIK=10*6e4,N11_GERI=15*6e4;
 function n11Gun(ms){const t=new Date(ms+3*36e5);return String(t.getUTCDate()).padStart(2,"0")+"/"+String(t.getUTCMonth()+1).padStart(2,"0")+"/"+t.getUTCFullYear()}
 function n11Zaman(s){const m=String(s||"").match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/);return m?Date.UTC(+m[3],+m[2]-1,+m[1],(+m[4]||0)-3,+m[5]||0):Date.now()}
 function n11Kalem(o,l,i){
@@ -623,22 +626,26 @@ function n11Kalem(o,l,i){
 }
 async function n11Cek(gun){
   if(N11.yok)return 0;
-  const su=Date.now();let n=0;
-  for(let s=su-gun*864e5;s<su;s+=15*864e5){
-    const e=Math.min(s+15*864e5,su);let sayfa=0,top=1;
-    while(sayfa<top&&sayfa<20){
-      let c;
-      try{c=await kopru("/n11-siparisler",{baslangic:n11Gun(s),bitis:n11Gun(e),sayfa})}
-      catch(x){if(/girilmemiş/.test(x.message)){N11.yok=true;return n}throw new Error(x.yetki?"n11 anahtarı ya da şifresi yanlış.":x.message)}
-      (c.content||[]).forEach(o=>(o.lines||[]).forEach((l,i)=>{const k=n11Kalem(o,l,i);const es=D.kalemler[k.id];D.kalemler[k.id]=es?{...es,...k}:k;n++}));
-      top=c.totalPages||1;sayfa++;
+  const su=Date.now();let n=0;let sayfa=0,top=1;
+  while(sayfa<top&&sayfa<20){
+    let c;
+    try{c=await kopru("/n11-siparisler",{baslangic:n11Gun(su-gun*864e5),bitis:n11Gun(su),sayfa})}
+    catch(x){
+      if(/girilmemiş/.test(x.message)){N11.yok=true;return n}
+      if(/belli süre|aralık/i.test(x.message)){const h=new Error("n11 sık sorguya izin vermiyor, birkaç dakika sonra kendiliğinden tekrar denenecek.");h.sinir=true;throw h}
+      throw new Error(x.yetki?"n11 anahtarı ya da şifresi yanlış.":x.message);
     }
+    (c.content||[]).forEach(o=>(o.lines||[]).forEach((l,i)=>{const k=n11Kalem(o,l,i);const es=D.kalemler[k.id];D.kalemler[k.id]=es?{...es,...k}:k;n++}));
+    top=c.totalPages||1;sayfa++;
   }
   return n;
 }
 async function n11Guvenli(gun){
-  try{const n=await n11Cek(N11.tamCekildi?gun:30);N11.tamCekildi=true;N11.hata="";return n}
-  catch(x){N11.hata="n11: "+(x.message==="Failed to fetch"?"ulaşılamadı":x.message);return 0}
+  const su=Date.now();
+  if(N11.yok||su<N11.bekle||su-N11.son<N11_ARALIK)return 0;
+  N11.son=su;
+  try{const n=await n11Cek(N11.tamCekildi?gun:30);N11.tamCekildi=true;N11.hata="";N11.bekle=0;return n}
+  catch(x){if(x.sinir)N11.bekle=su+N11_GERI;N11.hata="n11: "+(x.message==="Failed to fetch"?"ulaşılamadı":x.message);return 0}
 }
 /* ---------- Otomatik yenileme: yalnız uygulama açık ve görünürken, köprü kuruluysa çalışır.
    Son 3 günün siparişleri 5 dakikada bir, komisyon ve kargo faturası günde bir kez alınır.
@@ -807,7 +814,7 @@ function veriBagla(e){
   const kC=$("#kCek");if(kC)kC.onclick=async()=>{
     const d=$("#kDurum");kC.disabled=true;
     const onceki=OTO.calisiyor;
-    const soz=(async()=>{if(onceki)await onceki;const t=await trendyolCek(30,m=>{d.textContent=m});d.textContent="n11 siparişleri alınıyor";N11.yok=false;N11.tamCekildi=false;const n=await n11Guvenli(30);if(n)await kalemleriKaydet();return t+n})();
+    const soz=(async()=>{if(onceki)await onceki;const t=await trendyolCek(30,m=>{d.textContent=m});d.textContent="n11 siparişleri alınıyor";N11.yok=false;N11.tamCekildi=false;const n=await n11Guvenli(30);if(N11.hata)d.textContent=N11.hata;if(n)await kalemleriKaydet();return t+n})();
     OTO.calisiyor=soz;
     try{const n=await soz;OTO.durdu=false;OTO.hata="";OTO.kismi="";OTO.basari=Date.now();uyar(n+" sipariş satırı alındı.");G.sekme="ozet";ciz()}
     catch(x){d.textContent=x.message==="Failed to fetch"?"Worker'a ulaşılamadı. Adresi kontrol et.":x.message}
