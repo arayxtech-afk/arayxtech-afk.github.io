@@ -426,13 +426,14 @@ function bekliyorMu(k){
   if(k.kanal==="N11")return BEKLEYEN_N11.has(k.ham);
   return /bekl|yeni|onay|hazırla|paketle|işlem/i.test(k.ham)&&!/kargo(ya verildi|da)|yolda|gönderildi/i.test(k.ham);
 }
-/* Bugün ve bu hafta (pazartesiden beri): iptal hariç sipariş sayısı (paket) ve satış tutarı, tüm mağazalar */
+/* Bugün ve içinde bulunulan takvim ayı (1'inden bugüne, 30 gün değil): iptal hariç sipariş sayısı (paket) ve satış tutarı, tüm mağazalar */
 function bugunCiz(kalemler){
   const g=new Date();g.setHours(0,0,0,0);const bugun=g.getTime();
-  const h=new Date(g);h.setDate(h.getDate()-((h.getDay()+6)%7));const hafta=h.getTime();
+  const ayBas=new Date(g.getFullYear(),g.getMonth(),1).getTime();
+  const ayAd=g.toLocaleString("tr-TR",{month:"long"});
   const say=bas=>{const l=kalemler.filter(k=>k.tarih>=bas&&k.durum!=="iptal");return {paket:new Set(l.map(k=>k.kanal+"|"+k.paket)).size,tl:l.reduce((a,k)=>a+(+k.brut||0),0)}};
-  const b=say(bugun),w=say(hafta);
-  return `<div class="gunkutu">${[["Bugün",b],["Bu hafta",w]].map(([ad,v])=>`<div class="gk"><span class="ad">${ad}</span><b>${fmt0.format(v.paket)} <small>sipariş</small></b><span class="tut">${tl0(v.tl)}</span></div>`).join("")}</div>`;
+  const b=say(bugun),m=say(ayBas);
+  return `<div class="gunkutu">${[["Bugün",b],[ayAd,m]].map(([ad,v])=>`<div class="gk"><span class="ad">${ad}</span><b>${fmt0.format(v.paket)} <small>sipariş</small></b><span class="tut">${tl0(v.tl)}</span></div>`).join("")}</div>`;
 }
 function bekleyenCiz(kalemler,ornek){
   if(ornek)return "";
