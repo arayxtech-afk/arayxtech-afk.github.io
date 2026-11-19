@@ -11,7 +11,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>
 /* Açılınca ve öne gelince yeni sürüm var mı bakar; varsa önbelleği atlayıp bir kez yeniler (İş Takibi ile aynı yöntem) */
-const APP_VER='20261119165000';
+const APP_VER='20261119223748';
 function guncelKontrol(){try{if(!/^https?:$/.test(location.protocol))return;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{
     const m=t.match(/const APP_VER='([^']+)'/);if(!m||m[1]===APP_VER)return;
@@ -189,6 +189,35 @@ tr:last-child td{border-bottom:0}
 .rozet.mavi{background:var(--scan-soft);color:var(--scan)}
 .gec{color:var(--warn)}
 .cokgec{color:var(--bad)}
+/* Kargoya verilecek listesi (2026-11-19 sade sürüm): gün başlığı + büyük adet kutusu + mağaza adı açık yazılı */
+.bek-ust{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.bek-ust h2{margin:0}
+.bek-ust .not{display:block;margin-top:2px}
+.bek-say{display:grid;justify-items:center;min-width:58px;padding:6px 10px;border-radius:14px;background:var(--warn-soft);color:var(--warn)}
+.bek-say b{font:700 1.7rem/1 var(--display);font-variant-numeric:tabular-nums}
+.bek-say small{font-size:.7rem;font-weight:600;margin-top:2px}
+.bek-liste{display:grid;gap:8px}
+.bek-gun{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 2px 0;font:700 .8rem/1.2 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.bek-gun:first-child{padding-top:0}
+.bek-gun em{font-style:normal;font-weight:600;letter-spacing:0;text-transform:none;font-size:.8rem}
+.bek-gun.gec>span{color:var(--warn)}
+.bek-gun.cokgec>span{color:var(--bad)}
+.bek-oge{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;padding:10px 12px 10px 10px;border-radius:14px;background:var(--surface2)}
+.bek-foto{position:relative;width:72px;height:72px;border-radius:12px;background:var(--surface3);border:1px solid var(--line);display:grid;place-items:center;color:var(--muted)}
+.bek-foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:11px;background:#fff;z-index:1}
+.bek-foto>svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;opacity:.5}
+.bek-adet{position:absolute;z-index:2;left:50%;bottom:-8px;transform:translateX(-50%);white-space:nowrap;padding:3px 7px;border-radius:999px;font:700 .7rem/1 var(--body);font-variant-numeric:tabular-nums;background:var(--surface);color:var(--text);border:1px solid var(--line);box-shadow:0 1px 3px rgba(16,24,40,.15)}
+.bek-adet.cok{background:var(--bad);border-color:var(--bad);color:#fff;font-size:.78rem;padding:4px 9px}
+.bek-oge{padding-bottom:14px}
+.bek-oge .govde{min-width:0;display:grid;gap:6px}
+.bek-oge .ad{font-weight:600;font-size:.93rem;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.bek-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.bek-meta .no{overflow-wrap:anywhere}
+.pazar{display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--text)}
+.pazar::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.pazar.ty::before{background:#F27A1A}
+.pazar.hb::before{background:#3FA9F5}
+.pazar.n11::before{background:#8B3FD1}
 .bos-durum{display:flex;align-items:center;gap:12px;padding:4px 0}
 .bos-durum .ik{width:40px;height:40px;border-radius:12px;background:var(--ok-soft);color:var(--ok);display:flex;align-items:center;justify-content:center;flex:none}
 .bos-durum .ik svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
@@ -434,6 +463,7 @@ async function yukle(){
   if(h.urunler&&h.urunler.u)D.urunler=h.urunler.u;
   else if(window.BASLANGIC_URUNLER){window.BASLANGIC_URUNLER.forEach(u=>{D.urunler[u.sku]=u})}
   for(const [ad,v] of Object.entries(h)){if(ad.startsWith("kalem_")&&v.k)v.k.forEach(k=>{D.kalemler[k.id]=k})}
+  tySaatDuzelt();
   if(h.finans){D.kargolar=h.finans.kargolar||{};D.odemeler=h.finans.odemeler||{};D.hizmetFatura=h.finans.hizmetFatura||{};D.sonCekim=h.finans.sonCekim||null;D.veriSurum=h.finans.veriSurum||0}
   D.yuklendi=true;ciz();
 }
@@ -474,6 +504,27 @@ function donemAralik(d){
 }
 function marjRozet(m,A){return m<0?'<span class="rozet bad">▼ Zarar</span>':m<+A.kritikMarj?'<span class="rozet warn">! Az kalıyor</span>':'<span class="rozet ok">✓ Kârlı</span>'}
 function temizAd(s){return String(s||"").replace(/,\s*one size\s*$/i,"").trim()}
+/* Ürün fotoğrafı: Trendyol ürün listesindeki ilk görsel (cdn.dsmcdn.com). Hepsiburada ve n11 siparişleri aynı ürünün
+   Trendyol fotoğrafını barkod, stok kodu ya da ürün adı benzerliğiyle bulur. Bulunamazsa kutu simgesi görünür. */
+function urunResim(c,v){const l=(v&&v.images&&v.images.length?v.images:c&&c.images)||[];const x=l[0];const u=typeof x==="string"?x:(x&&x.url)||"";return /^https:\/\//.test(u)?u:""}
+const ADDAN_AT=new Set(["arayx3d","arayx","uyumlu","için","icin","ve","ile","siyah","adet","1","oto","araç","arac"]);
+function adKelime(s){return new Set(String(s||"").toLocaleLowerCase("tr-TR").replace(/[^0-9a-zçğıöşü]+/g," ").split(" ").filter(w=>w.length>1&&!ADDAN_AT.has(w)))}
+let RESIM_DIZIN=null;
+function resimDizin(){
+  const l=Object.values(D.urunler).filter(u=>u&&u.resim);
+  const anah=new Map();l.forEach(u=>[u.sku,u.barkod,u.stok].forEach(a=>{if(a)anah.set(String(a),u.resim)}));
+  return {anah,adlar:l.map(u=>({k:adKelime(u.ad),r:u.resim})),boy:l.length};
+}
+function resimBul(k){
+  if(!RESIM_DIZIN||RESIM_DIZIN.boy!==Object.values(D.urunler).filter(u=>u&&u.resim).length)RESIM_DIZIN=resimDizin();
+  const R=RESIM_DIZIN;
+  for(const a of [k.barkod,k.sku,k.stok])if(a&&R.anah.has(String(a)))return R.anah.get(String(a));
+  const w=adKelime(k.ad);if(w.size<2)return "";
+  let en=0,r="";
+  R.adlar.forEach(x=>{let o=0;w.forEach(t=>{if(x.k.has(t))o++});const p=o/Math.max(w.size,x.k.size);if(p>en){en=p;r=x.r}});
+  return en>=0.55?r:"";
+}
+const KUTU_IK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>';
 function urunAd(r){return temizAd(r.k.ad)||(r.u&&r.u.ad)||r.k.sku||r.k.barkod||"Bilinmeyen ürün"}
 /* ---------- Sekmeler ---------- */
 const SEKME=[
@@ -526,6 +577,10 @@ function bekliyorMu(k){
   if(k.kanal==="Hepsiburada"&&k.kaynak==="api")return BEKLEYEN_HB.has(k.ham);
   return /bekl|yeni|onay|hazırla|paketle|işlem/i.test(k.ham)&&!/kargo(ya verildi|da)|yolda|gönderildi/i.test(k.ham);
 }
+/* Trendyol orderDate, Türkiye saatini UTC gibi yazar: 3 saat ileri görünür (19.11.2026'da 22:12'de "23:57" görüldü).
+   Yeni gelen satırlarda düzeltilir (tz:1); eski kayıtlar açılışta bir kez düzeltilir. */
+const TY_SAAT_FARK=3*36e5;
+function tySaatDuzelt(){Object.values(D.kalemler).forEach(k=>{if(k.kanal==="Trendyol"&&k.kaynak==="api"&&!k.tz&&k.tarih){k.tarih-=TY_SAAT_FARK;k.tz=1}})}
 function gunOnce(t){const b=new Date();b.setHours(0,0,0,0);const g=Math.max(0,Math.ceil((b.getTime()-t)/864e5));return g<1?"Bugün":g===1?"Dün":g+" gün önce"}
 /* Bekleyen siparişler: üstte sayı, mağaza seçici, en eski üstte liste. Hiç yoksa tek satır "hepsi kargoda". */
 function bekleyenCiz(kalemler,ornek){
@@ -537,10 +592,24 @@ function bekleyenCiz(kalemler,ornek){
   const sec=G.bekKanal&&veriVar.has(G.bekKanal)?G.bekKanal:"";
   const liste=bek.filter(k=>!sec||k.kanal===sec).sort((a,b)=>a.tarih-b.tarih);
   const secici=`<div class="seg" role="group" aria-label="Mağaza"><button data-bek="" aria-pressed="${!sec}">Tümü <em>${paketSay(bek)}</em></button>${BEK_KANAL.filter(([k])=>veriVar.has(k)).map(([k,ad])=>{const n=paketSay(bek.filter(x=>x.kanal===k));return `<button data-bek="${k}" aria-pressed="${sec===k}" ${n?"":"disabled"}>${ad} <em>${n}</em></button>`}).join("")}</div>`;
-  const yas=t=>{const g=(Date.now()-t)/864e5;return g>=2?"cokgec":g>=1?"gec":""};
-  return `<section class="kart"><div class="kart-bas"><h2>Kargoya verilecek</h2><span class="sayac">${paketSay(bek)}</span></div>
+  /* Günlere ayrılır (en eski gün üstte, önce o kargolanır). Her satır: solda büyük adet, ortada ürün, altında mağaza adı + saat. */
+  const bugun=new Date();bugun.setHours(0,0,0,0);
+  const gunFark=t=>{const d=new Date(t);d.setHours(0,0,0,0);return Math.round((bugun-d)/864e5)};
+  const gruplar=[];
+  liste.slice(0,40).forEach(k=>{const g=gunFark(k.tarih);let o=gruplar[gruplar.length-1];if(!o||o.g!==g){o={g,l:[]};gruplar.push(o)}o.l.push(k)});
+  const saat=t=>new Date(t).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
+  const grupBas=o=>{const ad=o.g<=0?"Bugün":o.g===1?"Dün":gunBaslik(o.l[0].tarih);
+    const uyari=o.g>=2?`<em class="cokgec">${o.g} gündür bekliyor</em>`:o.g===1?`<em class="gec">Dünden kaldı</em>`:"";
+    return `<div class="bek-gun${o.g>=2?" cokgec":o.g===1?" gec":""}"><span>${esc(ad)}</span>${uyari||`<em>${paketSay(o.l)} paket</em>`}</div>`};
+  RESIM_DIZIN=null;
+  const satir=k=>{const rs=resimBul(k);return `<div class="bek-oge">
+      <span class="bek-foto">${rs?`<img src="${esc(rs)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}${KUTU_IK}<span class="bek-adet${k.adet>1?" cok":""}">${k.adet||1} adet</span></span>
+      <span class="govde"><span class="ad">${esc(temizAd(k.ad)||k.sku||"Ürün")}</span>
+        <span class="bek-meta"><span class="pazar ${(KANAL_KISA[k.kanal]||["",""])[1]}">${esc(kanalAd(k.kanal))}</span><span>${saat(k.tarih)}</span><span class="no">#${esc(k.siparisNo||k.paket)}</span></span></span>
+    </div>`};
+  return `<section class="kart"><div class="bek-ust"><span><h2>Kargoya verilecek</h2><span class="not">Eski siparişler üstte</span></span><span class="bek-say"><b>${paketSay(bek)}</b><small>paket</small></span></div>
     ${secici}
-    <div class="liste">${liste.slice(0,40).map(k=>`<div class="oge duz" style="grid-template-columns:auto 1fr auto">${kanalKutu(k.kanal)}<span class="govde"><span class="ad">${esc(temizAd(k.ad)||k.sku||"Ürün")}</span><span class="kod">#${esc(k.siparisNo||k.paket)}${k.adet>1?" · "+k.adet+" adet":""}</span></span><span class="sag"><span class="${yas(k.tarih)}">${gunOnce(k.tarih)}</span><small>${new Date(k.tarih).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})}</small></span></div>`).join("")}</div>
+    <div class="bek-liste">${gruplar.map(o=>grupBas(o)+o.l.map(satir).join("")).join("")}</div>
     ${liste.length>40?'<p class="not">İlk 40 satır gösteriliyor.</p>':""}
   </section>`;
 }
@@ -776,7 +845,7 @@ function tyKalem(p,l,i){
   const adet=+l.quantity||1;
   if(l.discountDetails&&l.discountDetails.length){l.discountDetails.forEach(d=>{brut+=(+d.lineItemPrice||0)+(+d.lineItemTyDiscount||0)})}
   else brut=((+l.lineUnitPrice||0)+(+l.lineTyDiscount||0))*adet;
-  return {id:"TY-"+p.shipmentPackageId+"-"+(l.lineId||i),kanal:"Trendyol",paket:String(p.shipmentPackageId),siparisNo:String(p.orderNumber||""),tarih:+p.orderDate,durum:DURUM_TY[p.status]||DURUM_TY[l.orderLineItemStatusName]||"yolda",ham:String(p.status||""),sku:l.barcode||l.stockCode||"",stok:l.stockCode||"",barkod:l.barcode||"",ad:temizAd(l.productName),adet,brut:Math.round(brut*100)/100,kdvOran:l.vatRate!=null?+l.vatRate:null,komisyonOran:l.commission!=null?+l.commission:null,desi:+p.cargoDeci||null,kaynak:"api"};
+  return {id:"TY-"+p.shipmentPackageId+"-"+(l.lineId||i),kanal:"Trendyol",paket:String(p.shipmentPackageId),siparisNo:String(p.orderNumber||""),tarih:+p.orderDate-TY_SAAT_FARK,tz:1,durum:DURUM_TY[p.status]||DURUM_TY[l.orderLineItemStatusName]||"yolda",ham:String(p.status||""),sku:l.barcode||l.stockCode||"",stok:l.stockCode||"",barkod:l.barcode||"",ad:temizAd(l.productName),adet,brut:Math.round(brut*100)/100,kdvOran:l.vatRate!=null?+l.vatRate:null,komisyonOran:l.commission!=null?+l.commission:null,desi:+p.cargoDeci||null,kaynak:"api"};
 }
 async function siparisAl(s,e,siparisPaket){
   let n=0;
@@ -809,6 +878,7 @@ async function trendyolCek(gun,dur){
     if(tah&&(!maliyetVar(o)||o.otoMaliyet)){o.gram=tah.gram;o.saat=tah.saat;o.otoMaliyet=true}
     o.ad=c.title||o.ad;o.stok=v.stockCode||o.stok;o.barkod=v.barcode||o.barkod;o.kdv=v.vatRate!=null?+v.vatRate:o.kdv;
     const fy=v.price&&v.price.salePrice;if(fy!=null)o.fiyat=+fy;
+    const rs=urunResim(c,v);if(rs)o.resim=rs;
     D.urunler[sku]=o;guncel.add(sku);
   }));
   let n=0;
@@ -961,7 +1031,7 @@ async function hbGuvenli(gun){
 const OTO={son:0,calisiyor:null,durdu:false,hata:"",kismi:"",basari:0,tamDeneme:0};
 const OTO_ARALIK=5*6e4,OTO_DONUS=2*6e4,OTO_TAM=24*36e5,OTO_TAM_TEKRAR=36e5;
 /* Kayıt biçimi değişince eski siparişler ilk açılışta baştan çekilir */
-const VERI_SURUM=3;
+const VERI_SURUM=4; /* 4: ürün fotoğrafları için bir kez tam çekim */
 function otoHazir(){const K=Depo.kopruAl();return !artifactte&&!!K.adres&&!!K.kod&&!OTO.durdu&&document.visibilityState==="visible"&&D.yuklendi}
 function imza(){return Object.values(D.kalemler).map(k=>k.id+"|"+k.durum+"|"+k.ham+"|"+k.komisyonTL).sort().join(";")}
 function otoYenile(esik){
