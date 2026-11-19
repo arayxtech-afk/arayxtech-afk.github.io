@@ -11,7 +11,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>
 /* Açılınca ve öne gelince yeni sürüm var mı bakar; varsa önbelleği atlayıp bir kez yeniler (İş Takibi ile aynı yöntem) */
-const APP_VER='20261119223748';
+const APP_VER='20261119231854';
 function guncelKontrol(){try{if(!/^https?:$/.test(location.protocol))return;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{
     const m=t.match(/const APP_VER='([^']+)'/);if(!m||m[1]===APP_VER)return;
@@ -140,6 +140,13 @@ main>*{min-width:0}
 .hero .hucre b{font:700 1.35rem/1.1 var(--display);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .hero .hucre b small{font:500 .8rem var(--body);color:var(--hero-muted)}
 .hero .hucre b.eksi{color:#FF9A8F}
+.hero .tarih{font-size:.82rem;color:var(--hero-muted)}
+.hero .cumle b{color:var(--hero-ink)}.hero .cumle b.eksi{color:#FF9A8F}
+.hero .ay-panel{display:grid;gap:10px;padding-top:14px;border-top:1px solid var(--hero-line);position:relative;z-index:1}
+.hero .ay-bas{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hero .ay-panel .hucre{align-content:start}
+.hero .ay-panel .degisim{justify-self:start;font-size:.72rem;margin-top:3px;background:rgba(255,255,255,.08)}
+.hero .hucre .degisim.up{color:#6FE0A8}.hero .hucre .degisim.down{color:#FF9A8F}
 /* Kesinti köprüsü */
 .kopru{display:grid;gap:8px}
 .kopru .s{display:grid;grid-template-columns:minmax(92px,118px) 1fr auto;align-items:center;gap:10px;font-size:.9rem}
@@ -708,17 +715,21 @@ function ozetCiz(e){
   const yaklasan=yaklasanOdeme();
   const ayAd=new Date(ar.s).toLocaleDateString("tr-TR",{month:"long"});
   const g=new Date();g.setHours(0,0,0,0);
-  const bugunL=kalemler.filter(k=>k.tarih>=g.getTime()&&k.durum!=="iptal");
-  const bugunTL=bugunL.reduce((a,k)=>a+(+k.brut||0),0);
-  const ikinci=G.donem==="buay"?`<div class="hucre"><span>Bugün</span><b>${tl0(bugunTL)} <small>· ${paketSay(bugunL)} sip.</small></b></div>`:`<div class="hucre"><span>Sipariş başına</span><b>${tl0(t.paket?t.brut/t.paket:0)}</b></div>`;
+  /* Üst kart (2026-11-19): büyük rakam BUGÜN; altta seçilen ayın satışı ve kalanı */
+  const tb=topla(hepsi.filter(r=>r.k.tarih>=g.getTime()));
+  const gunAd=g.toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"});
   e.innerHTML=`
   ${ornek?ornekBant():""}
   ${ornek?"":bildirimBant()}
   <section class="hero tam">
-    <div class="hero-ust"><span class="ad">${esc(ayAd)} satışı</span><div class="seg koyu" role="group" aria-label="Dönem">${[["buay","Bu ay"],["gecenay","Geçen ay"]].map(([d,a])=>`<button data-donem="${d}" aria-pressed="${G.donem===d}">${a}</button>`).join("")}</div></div>
-    <div><div class="deger">${fmt0.format(Math.round(t.brut))}<small>TL</small></div>
-    <p class="cumle"><span>${fmt0.format(t.paket)} sipariş</span>${fark!=null?`<span class="degisim ${fark>=0?"up":"down"}">${fark>=0?"▲":"▼"} %${fmt0.format(Math.abs(fark))}</span><span>${G.donem==="buay"?"geçen ayın aynı günlerine göre":"önceki aya göre"}</span>`:""}</p></div>
-    <div class="izgara"><div class="hucre"><span>Kesintiler sonrası kalan</span><b class="${t.kalan<0?"eksi":""}">${tl0(t.kalan)}</b></div>${ikinci}</div>
+    <div class="hero-ust"><span class="ad">Bugün</span><span class="tarih">${esc(gunAd)}</span></div>
+    <div><div class="deger">${fmt0.format(Math.round(tb.brut))}<small>TL</small></div>
+    <p class="cumle"><span>${fmt0.format(tb.paket)} sipariş${tb.paket?` · kesintiler sonrası <b class="${tb.kalan<0?"eksi":""}">${tl0(tb.kalan)}</b>`:""}</span></p></div>
+    <div class="ay-panel">
+      <div class="ay-bas"><span class="ad">${esc(ayAd)}</span><div class="seg koyu" role="group" aria-label="Dönem">${[["buay","Bu ay"],["gecenay","Geçen ay"]].map(([d,a])=>`<button data-donem="${d}" aria-pressed="${G.donem===d}">${a}</button>`).join("")}</div></div>
+      <div class="izgara"><div class="hucre"><span>Satış · ${fmt0.format(t.paket)} sipariş</span><b>${tl0(t.brut)}</b>${fark!=null?`<span class="degisim ${fark>=0?"up":"down"}">${fark>=0?"▲":"▼"} %${fmt0.format(Math.abs(fark))} ${G.donem==="buay"?"geçen aya göre":"önceki aya göre"}</span>`:""}</div>
+      <div class="hucre"><span>Kesintiler sonrası kalan</span><b class="${t.kalan<0?"eksi":""}">${tl0(t.kalan)}</b></div></div>
+    </div>
   </section>
   ${bekleyenCiz(kalemler,ornek)}
   ${ornek?"":gunlerCiz(kalemler)}
