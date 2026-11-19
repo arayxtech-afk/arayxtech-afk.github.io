@@ -11,7 +11,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>
 /* Açılınca ve öne gelince yeni sürüm var mı bakar; varsa önbelleği atlayıp bir kez yeniler (İş Takibi ile aynı yöntem) */
-const APP_VER='20261119164521';
+const APP_VER='20261119165000';
 function guncelKontrol(){try{if(!/^https?:$/.test(location.protocol))return;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{
     const m=t.match(/const APP_VER='([^']+)'/);if(!m||m[1]===APP_VER)return;
@@ -578,8 +578,49 @@ function magazaCiz(s){
     <div>${l.map(([k,v])=>`<div class="magaza"><span class="nokta" style="background:${KANAL_RENK[k]||"var(--gider)"}"></span><span class="ad">${esc(kanalAd(k))}<small>${v.pk.size} sipariş · %${fmt0.format(v.brut/top*100)}</small></span><span class="tut">${tl0(v.brut)}<small>kalan ${tl0(v.kalan)}</small></span></div>`).join("")}</div>
   </section>`;
 }
+/* ---------- Taşıma: iPhone'da her ana ekran simgesi kendi verisini ayrı tutar.
+   Eski "Kâr Paneli" simgesindeki bağlantı ve siparişler, panoya kopyalanan tek bir metinle ARAYX simgesine taşınır. */
+const TASI_ON="ARAYXKAR1:";
+function tasimaMetni(){
+  const v={kopru:Depo.kopruAl(),ayar:D.ayar,urunler:D.urunler,kalemler:Object.values(D.kalemler),kargolar:D.kargolar,odemeler:D.odemeler,hizmetFatura:D.hizmetFatura,sonCekim:D.sonCekim,veriSurum:D.veriSurum};
+  return TASI_ON+btoa(unescape(encodeURIComponent(JSON.stringify(v))));
+}
+async function tasimaYukle(t){
+  t=String(t||"").replace(/\s+/g,"");
+  if(!t.startsWith(TASI_ON))throw new Error("Bu bir taşıma kodu değil. Eski Kâr Paneli'nde önce \"ARAYX'e taşı\"ya bas.");
+  const v=JSON.parse(decodeURIComponent(escape(atob(t.slice(TASI_ON.length)))));
+  if(v.kopru&&v.kopru.adres&&v.kopru.kod)Depo.kopruYaz({adres:v.kopru.adres,kod:v.kopru.kod});
+  if(v.ayar)D.ayar=birlestirAyar(v.ayar);
+  D.urunler={...(v.urunler||{}),...D.urunler};
+  (v.kalemler||[]).forEach(k=>{if(!D.kalemler[k.id])D.kalemler[k.id]=k});
+  D.kargolar={...(v.kargolar||{}),...D.kargolar};D.odemeler={...(v.odemeler||{}),...D.odemeler};D.hizmetFatura={...(v.hizmetFatura||{}),...D.hizmetFatura};
+  if(v.sonCekim&&!D.sonCekim){D.sonCekim=v.sonCekim;D.veriSurum=v.veriSurum||0}
+  await Depo.yaz("ayarlar",D.ayar);await Depo.yaz("urunler",{u:D.urunler});await kalemleriKaydet();
+  OTO.durdu=false;OTO.hata="";OTO.son=0;
+  return (v.kalemler||[]).length;
+}
+function tasimaKarti(){
+  return `<section class="kart tam"><h2>Pazaryeri bilgilerini getir</h2>
+    <p class="not">iPhone'da ana ekrandaki her simge kendi bilgisini ayrı tutar. Kâr Paneli'ndeki bağlantı ve siparişleri buraya bir kez taşıman yeterli.</p>
+    <ol class="adim"><li><span>Ana ekrandaki eski <b>Kâr Paneli</b> simgesini aç.</span></li><li><span>Sağ üstteki ayar düğmesine bas, <b>ARAYX'e taşı</b>'ya dokun.</span></li><li><span>Bu uygulamaya dön, aşağıdaki <b>Yapıştır</b>'a bas.</span></li></ol>
+    <div class="sira"><button class="btn" id="tasiYapistir">Yapıştır</button><button class="btn ikinci" data-git="veri">Elle bağla</button></div>
+    <textarea id="tasiMetin" hidden rows="3" placeholder="Kodu buraya yapıştır" aria-label="Taşıma kodu" style="width:100%;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--surface)"></textarea>
+    <p class="not" id="tasiDurum" role="status"></p>
+  </section>`;
+}
+function tasimaBagla(e){
+  const b=$("#tasiYapistir",e);if(!b)return;
+  const d=()=>$("#tasiDurum");const m=()=>$("#tasiMetin");
+  const yukle=async t=>{d().textContent="Taşınıyor";try{const n=await tasimaYukle(t);uyar(n+" sipariş satırı taşındı. Yeni siparişler de geliyor.");ciz();otoYenile(0)}catch(x){d().textContent=x.message||"Kod okunamadı. Tekrar kopyalayıp dene."}};
+  b.onclick=async()=>{
+    if(!m().hidden&&m().value.trim())return yukle(m().value);
+    try{const t=await navigator.clipboard.readText();if(t&&t.trim())return yukle(t);throw 0}
+    catch(x){m().hidden=false;m().focus();d().textContent="Kutuya basılı tut, Yapıştır de, sonra tekrar Yapıştır düğmesine bas."}
+  };
+}
 function ozetCiz(e){
   const {kalemler,urunler,ornek}=gorunen();const A=D.ayar;
+  if(ornek&&!artifactte){e.innerHTML=tasimaKarti();tasimaBagla(e);return}
   const ar=donemAralik(G.donem);
   const hepsi=satirlariHesapla(kalemler,urunler,A,D.kargolar);
   const s=hepsi.filter(r=>r.k.tarih>=ar.s&&r.k.tarih<ar.e);
@@ -1091,6 +1132,11 @@ function veriCiz(e){
   const durumS=(ad,kisa,ok,yok,hata)=>`<div class="s"><span>${kanalKutu(kisa)}${ad}</span>${hata?'<span class="rozet bad">Hata</span>':ok?'<span class="rozet ok">✓ Bağlı</span>':yok?'<span class="rozet gri">Bağlı değil</span>':'<span class="rozet gri">Bekleniyor</span>'}</div>`;
   e.innerHTML=`
   <div class="sayfa-bas tam">${geri()}</div>
+  ${!artifactte&&bagli?`<section class="kart tam"><div class="kart-bas"><h2>ARAYX uygulamasına taşı</h2></div>
+    <p class="not">Bağlantıyı ve siparişleri kopyalar. Sonra ARAYX simgesini aç, Pazaryeri'ne geç, Yapıştır'a bas.</p>
+    <div class="sira"><button class="btn" id="tasiKopya">ARAYX'e taşı</button></div>
+    <textarea id="tasiKod" hidden readonly rows="3" aria-label="Taşıma kodu" style="width:100%;font-size:16px"></textarea>
+  </section>`:""}
   <section class="kart tam"><div class="kart-bas"><h2>Mağaza bağlantıları</h2></div>
   ${artifactte?`<div class="bant info"><span>Otomatik çekim, telefondaki sürümde çalışır: <b class="mono">arayxtech-afk.github.io/kar.html</b>. Burada Excel yükleyebilirsin.</span></div>`:`
     ${bagli?`<div class="baglanti">${durumS("Trendyol","Trendyol",!!OTO.basari&&!OTO.hata,false,!!OTO.hata)}${durumS("Hepsiburada","Hepsiburada",HB.bagli&&!HB.hata,HB.yok,!!HB.hata)}${durumS("n11","N11",N11.tamCekildi&&!N11.hata,N11.yok,!!N11.hata&&!/sık sorgu/.test(N11.hata))}</div>`:`<p class="not">Henüz bağlı değil. Aşağıdaki adımlarla bir kez kurulur.</p>`}
@@ -1136,6 +1182,8 @@ function veriCiz(e){
 }
 function veriBagla(e){
   bildirimBagla(e);
+  const tk=$("#tasiKopya",e);if(tk)tk.onclick=()=>{const t=tasimaMetni();const goster=()=>{const a=$("#tasiKod");a.hidden=false;a.value=t;a.focus();a.select();uyar("Kopyalanamadı. Kutudaki her şeyi seçip kopyala.")};
+    if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>{tk.textContent="Kopyalandı ✓";uyar("Kopyalandı. Şimdi ARAYX simgesini aç, Pazaryeri'nde Yapıştır'a bas.")},goster);else goster()};
   const A=D.ayar;
   e.querySelectorAll("[data-ayar]").forEach(i=>i.addEventListener("input",()=>{A[i.dataset.ayar]=+i.value;ayarKaydet()}));
   e.querySelectorAll("[data-kg]").forEach(i=>i.addEventListener("input",()=>{A.kargo[+i.dataset.kg].tl=+i.value;ayarKaydet()}));
