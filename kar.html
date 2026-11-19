@@ -11,7 +11,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>
 /* Açılınca ve öne gelince yeni sürüm var mı bakar; varsa önbelleği atlayıp bir kez yeniler (İş Takibi ile aynı yöntem) */
-const APP_VER='20261119161207';
+const APP_VER='20261119164521';
 function guncelKontrol(){try{if(!/^https?:$/.test(location.protocol))return;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{
     const m=t.match(/const APP_VER='([^']+)'/);if(!m||m[1]===APP_VER)return;
@@ -86,6 +86,11 @@ p{margin:0}
 .ust .etiket i{width:7px;height:7px;border-radius:50%;background:var(--bar-muted);flex:none}
 .ust .etiket[data-d="ok"] i{background:#43C68A;box-shadow:0 0 0 3px rgba(67,198,138,.22)}
 .ust .etiket[data-d="bad"] i{background:#F2685A}
+.gecis{display:flex;gap:3px;background:rgba(255,255,255,.08);border-radius:11px;padding:3px;flex:none}
+.gecis a{color:var(--bar-muted);text-decoration:none;font:600 13.5px/1 var(--body);padding:8px 12px;border-radius:8px;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.gecis a[aria-current="page"]{background:rgba(255,255,255,.16);color:var(--bar-ink)}
+.gizli{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:359px){.gecis a{padding:8px 9px;font-size:13px}.ust .etiket{font-size:0;gap:0}}
 .disli{background:none;border:0;padding:6px;cursor:pointer;color:var(--bar-ink);display:flex;min-width:40px;min-height:40px;align-items:center;justify-content:center;border-radius:10px;opacity:.85}
 .disli:hover{background:rgba(255,255,255,.08);opacity:1}
 .disli svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -261,7 +266,8 @@ tr:last-child td{border-bottom:0}
 
 <header class="ust">
   <svg class="logo" viewBox="0 0 170 170" aria-hidden="true"><path d="M27,153 L77,13 L99,13 L147,153 L121,153 L88,51 L53,153 Z" fill="currentColor"/><path d="M7,163 Q71,113 163,71 Q85,125 7,163 Z" fill="#3FB8FF"/></svg>
-  <div class="baslik"><small>ARAYX</small><h1>Kâr Paneli</h1></div>
+  <h1 class="gizli">ARAYX Kâr Paneli</h1>
+  <div class="gecis" role="navigation" aria-label="Uygulama"><a href="index.html">Atölye</a><a href="kar.html" aria-current="page">Pazaryeri</a></div>
   <span class="etiket" id="ustEtiket"></span>
   <button class="disli" data-sekme="veri" aria-label="Ayarlar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg></button>
 </header>
