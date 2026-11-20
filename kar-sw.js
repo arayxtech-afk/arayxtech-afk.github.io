@@ -23,9 +23,15 @@ self.addEventListener("push", (e) => {
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
   const hedef = new URL((e.notification.data && e.notification.data.url) || "kar.html", self.registration.scope).href;
+  // kar.html#iadeler gibi bir adresse açık uygulamaya hangi bölümü göstereceği iletilir
+  const sekme = (new URL(hedef).hash || "").slice(1);
   e.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((liste) => {
-      for (const c of liste) if (c.url.includes("kar.html") && "focus" in c) return c.focus();
+      for (const c of liste)
+        if (c.url.includes("kar.html") && "focus" in c) {
+          if (sekme) c.postMessage({ sekme });
+          return c.focus();
+        }
       return self.clients.openWindow(hedef);
     })
   );
