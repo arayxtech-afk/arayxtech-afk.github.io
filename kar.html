@@ -11,7 +11,7 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>
 /* Açılınca ve öne gelince yeni sürüm var mı bakar; varsa önbelleği atlayıp bir kez yeniler (İş Takibi ile aynı yöntem) */
-const APP_VER='20261120163107';
+const APP_VER='20261124153414';
 function guncelKontrol(){try{if(!/^https?:$/.test(location.protocol))return;
   fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():'').then(t=>{
     const m=t.match(/const APP_VER='([^']+)'/);if(!m||m[1]===APP_VER)return;
@@ -103,6 +103,7 @@ main>*{min-width:0}
 .kart-bas .not{text-align:right}
 .satirbas{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .not{font-size:.84rem;color:var(--muted)}
+tr.soluk td{opacity:.55}
 .sayac{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font:700 .95rem/1 var(--body);font-variant-numeric:tabular-nums}
 /* Seçim düğmeleri */
 .seg{display:flex;gap:4px;background:var(--surface2);border-radius:12px;padding:4px;overflow-x:auto;scrollbar-width:none}
@@ -456,7 +457,7 @@ const Depo={
 };
 const artifactte=!!window.claude;
 const D={ayar:JSON.parse(JSON.stringify(VARSAYILAN)),urunler:{},kalemler:{},kargolar:{},odemeler:{},hizmetFatura:{},sonCekim:null,veriSurum:0,yuklendi:false,iadeler:{},iadeK:{}};
-const G={iadeFiltre:"acik",sekme:/^#iadeler$/.test(location.hash)?"iadeler":"ozet",donem:"buay",kanal:"Hepsi",sipFiltre:"tum",urunAra:"",fiyatSku:"",fiyatKanal:"Trendyol",fiyat:"",fiyatKom:"",hedefMarj:"",kampanya:""};
+const G={odemeAy:0,iadeFiltre:"acik",sekme:/^#iadeler$/.test(location.hash)?"iadeler":"ozet",donem:"buay",kanal:"Hepsi",sipFiltre:"tum",urunAra:"",fiyatSku:"",fiyatKanal:"Trendyol",fiyat:"",fiyatKom:"",hedefMarj:"",kampanya:""};
 let yazZaman={};
 function yazErtele(ad,uret){clearTimeout(yazZaman[ad]);yazZaman[ad]=setTimeout(()=>{Depo.yaz(ad,uret()).catch(()=>uyar("Kaydedilemedi. İnternet bağlantını kontrol et."))},500)}
 function ayarKaydet(){yazErtele("ayarlar",()=>D.ayar)}
@@ -552,7 +553,7 @@ function urunAd(r){return temizAd(r.k.ad)||(r.u&&r.u.ad)||r.k.sku||r.k.barkod||"
 /* ---------- Sekmeler ---------- */
 const SEKME=[
  ["ozet","Özet",'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'],
- ["siparis","Siparişler",'<path d="M4 6h16M4 12h16M4 18h10"/>'],
+ ["odeme","Ödemeler",'<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M16 15h2"/>'],
  ["iadeler","İadeler",'<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/>'],
  ["urunler","Ürünler",'<path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8"/>']];
 function sekmeCiz(){
@@ -581,7 +582,7 @@ function ciz(){
   /* Yeniden çizimde açık bırakılan katlanır bölümler açık kalsın */
   const baslik=d=>{const h=d.querySelector("summary h2");return G.sekme+"|"+(h?h.textContent.trim():"")};
   const acik=new Set([...e.querySelectorAll("details[open]")].map(baslik));
-  ({ozet:ozetCiz,urunler:urunlerCiz,siparis:siparisCiz,iadeler:iadeCiz,veri:veriCiz})[G.sekme](e);
+  ({ozet:ozetCiz,urunler:urunlerCiz,siparis:siparisCiz,odeme:odemeCiz,iadeler:iadeCiz,veri:veriCiz})[G.sekme](e);
   if(acik.size)e.querySelectorAll("details").forEach(d=>{if(acik.has(baslik(d)))d.open=true});
   bildirimBagla(e);
 }
@@ -785,6 +786,68 @@ function kontrolBul(sat){
 function yaklasanOdeme(){
   const su=Date.now();
   return Object.entries(D.odemeler).map(([t,tutar])=>({t:+t,tutar})).filter(y=>y.t>=su-864e5).sort((a,b)=>a.t-b.t).slice(0,6);
+}
+
+/* ---------- Ödemeler (2026-11-24) ----------
+   Bu ay (ya da gelecek ay) üç pazaryerinden hesaba ne kadar yatacağı.
+   Trendyol: hakediş kaydı olan siparişler kesin (D.odemeler = Trendyol'un ödeme tarihi ve satıcı geliri).
+   Hakedişi henüz oluşmamış Trendyol siparişleri ile Hepsiburada ve n11 tahmini: tutar = satış - komisyon - kargo - hizmet - stopaj,
+   ödeme günü = sipariş tarihi + vade (gün, bu ekrandan değiştirilir). */
+const VADE_VARS={Trendyol:21,Hepsiburada:28,N11:21};
+const ODEME_KANAL=[["Trendyol","Trendyol"],["Hepsiburada","Hepsiburada"],["N11","n11"]];
+function vadeGun(kanal){const K=D.ayar.kanallar[kanal]||{};return K.vade!=null&&K.vade!==""?+K.vade:VADE_VARS[kanal]}
+function odemeHesapla(ayOfset){
+  const su=new Date();const s=new Date(su.getFullYear(),su.getMonth()+ayOfset,1).getTime();const e=new Date(su.getFullYear(),su.getMonth()+ayOfset+1,1).getTime();
+  const bugun=new Date();bugun.setHours(0,0,0,0);
+  const {kalemler,urunler}=gorunen();
+  const satir=satirlariHesapla(kalemler,urunler,D.ayar,D.kargolar);
+  const gunler={};const kanal={};ODEME_KANAL.forEach(([k])=>kanal[k]={kesin:0,tahmin:0,yatti:0,adet:0});
+  const ekle=(t,k,tutar,tur)=>{const g=new Date(t);g.setHours(0,0,0,0);const a=g.getTime();if(a<s||a>=e)return;
+    const x=gunler[a]=gunler[a]||{t:a,kalem:{}};const y=x.kalem[k]=x.kalem[k]||{kesin:0,tahmin:0};y[tur]+=tutar;kanal[k][tur]+=tutar;if(a<bugun.getTime())kanal[k].yatti+=tutar};
+  /* Trendyol kesin: ödeme tarihine göre */
+  Object.entries(D.odemeler||{}).forEach(([t,tutar])=>ekle(+t,"Trendyol",+tutar||0,"kesin"));
+  /* Tahmin: hakedişi olmayan Trendyol + bütün Hepsiburada/n11 (iptaller zaten satırlarda yok) */
+  satir.forEach(r=>{
+    const k=r.k.kanal;if(!kanal[k])return;
+    if(k==="Trendyol"&&r.komGercek)return;
+    const tutar=r.brut-r.komisyon-r.kargo-r.hizmet-r.stopajTL;
+    const t=(r.k.tarih||0)+vadeGun(k)*864e5;
+    const once=kanal[k].tahmin;ekle(t,k,tutar,"tahmin");if(kanal[k].tahmin!==once)kanal[k].adet++;
+  });
+  const top={kesin:0,tahmin:0,yatti:0};Object.values(kanal).forEach(x=>{top.kesin+=x.kesin;top.tahmin+=x.tahmin;top.yatti+=x.yatti});
+  return {s,gunler:Object.values(gunler).sort((a,b)=>a.t-b.t),kanal,top,bugun:bugun.getTime()};
+}
+function odemeCiz(e){
+  const O=odemeHesapla(G.odemeAy);
+  const ayAd=new Date(O.s).toLocaleDateString("tr-TR",{month:"long",year:"numeric"});
+  const toplam=O.top.kesin+O.top.tahmin;
+  const bekleyen=toplam-O.top.yatti;
+  const kanalSatir=ODEME_KANAL.map(([k,ad])=>{const x=O.kanal[k];const t=x.kesin+x.tahmin;
+    return `<tr><td>${ad}</td><td class="r">${x.kesin?tl0(x.kesin):"–"}</td><td class="r">${x.tahmin?tl0(x.tahmin):"–"}</td><td class="r"><b>${tl0(t)}</b></td></tr>`}).join("");
+  const gunSatir=O.gunler.map(g=>{const gecti=g.t<O.bugun;
+    const d=new Date(g.t).toLocaleDateString("tr-TR",{day:"numeric",month:"short",weekday:"short"});
+    return Object.entries(g.kalem).map(([k,y],i)=>`<tr${gecti?' class="soluk"':""}><td>${i?"":esc(d)}</td><td>${k==="N11"?"n11":k}</td><td class="r">${tl0(y.kesin+y.tahmin)}</td><td>${y.kesin&&!y.tahmin?'<span class="rozet ok">Kesin</span>':y.kesin?'<span class="rozet mavi">Karışık</span>':'<span class="rozet warn">Tahmini</span>'}</td></tr>`).join("")}).join("");
+  e.innerHTML=`
+  <section class="hero tam">
+    <div class="hero-ust"><span class="ad">Hesaba yatacak</span><span class="tarih">${esc(ayAd)}</span></div>
+    <div><div class="deger">${fmt0.format(Math.round(toplam))}<small>TL</small></div>
+    <p class="cumle"><span>${G.odemeAy===0?`bugüne kadar <b>${tl0(O.top.yatti)}</b> · ay sonuna kadar <b>${tl0(bekleyen)}</b>`:`bu tutarın <b>${tl0(O.top.tahmin)}</b> kısmı tahmini`}</span></p></div>
+    <div class="ay-panel"><div class="ay-bas"><span class="ad">Ay</span><div class="seg koyu" role="group" aria-label="Ay">${[[0,"Bu ay"],[1,"Gelecek ay"]].map(([d,a])=>`<button data-odemeay="${d}" aria-pressed="${G.odemeAy===d}">${a}</button>`).join("")}</div></div></div>
+  </section>
+  <section class="kart"><h2>Pazaryerine göre</h2>
+    <div class="tablo-kap"><table><thead><tr><th>Pazaryeri</th><th class="r">Kesin</th><th class="r">Tahmini</th><th class="r">Toplam</th></tr></thead><tbody>${kanalSatir}</tbody></table></div>
+    <p class="not">Kesin: Trendyol'un hakediş kaydındaki ödeme tarihi ve tutarı. Tahmini: sipariş tarihi + vade; tutar satış − komisyon − kargo − hizmet bedeli − stopaj. Hepsiburada ve n11 ödeme bilgisi vermediği için hepsi tahmini.</p>
+  </section>
+  <details class="kart" open><summary><h2>Gün gün</h2></summary>
+    ${gunSatir?`<div class="tablo-kap"><table><thead><tr><th>Gün</th><th>Pazaryeri</th><th class="r">Tutar</th><th></th></tr></thead><tbody>${gunSatir}</tbody></table></div>`:`<p class="not">Bu ay için ödeme görünmüyor. Siparişler yenilenince burası dolar.</p>`}
+  </details>
+  <details class="kart"><summary><h2>Vade (tahmin için)</h2></summary>
+    <p class="not">Siparişten kaç gün sonra ödendiğini kendi hesap ekstrene göre gir. Trendyol'da hakedişi oluşan siparişler bu ayardan etkilenmez.</p>
+    <div class="izgara">${ODEME_KANAL.map(([k,ad])=>`<label class="hucre"><span>${ad} · gün</span><input type="number" inputmode="numeric" min="0" max="120" step="1" data-vade="${k}" value="${vadeGun(k)}"></label>`).join("")}</div>
+  </details>`;
+  e.querySelectorAll("[data-odemeay]").forEach(b=>b.onclick=()=>{G.odemeAy=+b.dataset.odemeay;ciz()});
+  e.querySelectorAll("[data-vade]").forEach(i=>i.onchange=()=>{const k=i.dataset.vade;const v=Math.max(0,Math.min(120,Math.round(+i.value||0)));
+    D.ayar.kanallar[k]={...(D.ayar.kanallar[k]||{}),vade:v};yazErtele("ayarlar",()=>D.ayar);ciz()});
 }
 /* ---------- Ürünler ---------- */
 function urunlerCiz(e){
@@ -1090,7 +1153,7 @@ function otoYenile(esik){
     const yeni=Object.keys(D.kalemler).length-eskiSayi;
     if(yeni>0)uyar(yeni+" yeni sipariş satırı geldi.");
     const iadeDegisti=iadeImza()!==iadeOnce;
-    if((tamOldu||imza()!==once||iadeDegisti)&&!$("#perde")&&(G.sekme==="ozet"||G.sekme==="siparis"||G.sekme==="iadeler"))ciz();else{etiketYaz();if(iadeDegisti)sekmeCiz()}
+    if((tamOldu||imza()!==once||iadeDegisti)&&!$("#perde")&&(G.sekme==="ozet"||G.sekme==="siparis"||G.sekme==="odeme"||G.sekme==="iadeler"))ciz();else{etiketYaz();if(iadeDegisti)sekmeCiz()}
     return true;
   })().finally(()=>{if(OTO.calisiyor===soz)OTO.calisiyor=null});
   OTO.calisiyor=soz;
